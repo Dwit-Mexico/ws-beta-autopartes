@@ -12,6 +12,7 @@ type GenericForm[T any] struct {
 }
 
 func FormValidator[T any](form GenericForm[T]) map[string][]string {
+	fmt.Println(form)
 	validate := validator.New()
 	if err := validate.Struct(form.Data); err != nil {
 		errors := make(map[string][]string)

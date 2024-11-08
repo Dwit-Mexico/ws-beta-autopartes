@@ -24,6 +24,16 @@ func (server Server) SignIn(username string, password string) (domain.APIRespons
 		}, err
 	}
 
+	if !user.IsActive {
+		return domain.APIResponse[domain.SignInResponse, any]{
+			Success: false,
+			Message: domain.Message{
+				En: "User is not active",
+				Es: "El usuario no está activo",
+			},
+		}, nil
+	}
+
 	validatedPassword := repository.ComparePasswords(user.Password, password)
 
 	if !validatedPassword {
@@ -58,9 +68,9 @@ func (server Server) SignIn(username string, password string) (domain.APIRespons
 				Username: user.Username,
 				Name:     user.Name,
 				Email:    user.Email,
-				Profile:  user.Profile,
 			},
-			Token: token,
+			Profile: user.Profile,
+			Token:   token,
 		},
 	}, nil
 }
@@ -144,7 +154,7 @@ func (server Server) ResetPasswordRequest(request *domain.PasswordResetRequest) 
 	}
 
 	if user.ID == 0 {
-		return repository.UserNotFound(), nil
+		return repository.RecordNotFound[string](), nil
 	}
 
 	t, err := template.ParseFiles("/srv/internal/adapters/templates/forgotten-password.html")
@@ -290,7 +300,7 @@ func (server Server) ResetForgottenPassword(request *domain.ResetForgottenPasswo
 	}
 
 	if user.ID == 0 {
-		return repository.UserNotFound(), nil
+		return repository.RecordNotFound[string](), nil
 	}
 
 	if len(scheme) > 0 {
@@ -342,7 +352,7 @@ func (server Server) ChangePassword(user repository.CustomClaims, request *domai
 	repo := repository.GetDBConnection(server.Host)
 	userData, err := repo.FindByID(user.ID)
 	if err != nil {
-		return repository.UserNotFound(), nil
+		return repository.RecordNotFound[string](), nil
 	}
 
 	validatedPassword := repository.ComparePasswords(userData.Password, request.CurrentPassword)

@@ -56,9 +56,6 @@ func GetDSNList() ([]domain.DSNSourceConfig, error) {
 		}
 	}
 
-	fmt.Println("===================== DEBUG DSNList =====================")
-	fmt.Println("DSNList: ", dsnList)
-
 	return dsnList, nil
 
 }

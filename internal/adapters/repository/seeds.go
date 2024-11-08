@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/RomanshkVolkov/test-api/internal/core/domain"
 	"gorm.io/gorm"
@@ -21,14 +22,38 @@ func AutoMigrateTable(db *gorm.DB, table interface{}) {
 }
 
 func RunSeeds(db *gorm.DB) {
-	// db.Exec("drop table users")
-	// db.Exec("drop table user_profiles")
+	startTimePoint := time.Now().UTC()
+	fmt.Println("====================================================================================")
+	fmt.Println("Operation run on database", db.Name())
+	fmt.Println("Start operation RunSeeds Seeding tables...")
+	// db.Exec("DROP TABLE IF EXISTS users_has_kitchens")
+	// db.Exec("DROP TABLE IF EXISTS shifts")
+	// db.Exec("DROP TABLE IF EXISTS kitchens")
+	// db.Exec("DROP TABLE IF EXISTS users")
+	// db.Exec("DROP TABLE IF EXISTS user_profiles")
+	// db.Exec("DROP TABLE IF EXISTS permissions")
+	// db.Exec("DROP TABLE IF EXISTS devs")
+	// db.Exec("DROP TABLE IF EXISTS hosting_centers")
+	// db.Exec("DROP TABLE IF EXISTS detail_document_tables")
+	// db.Exec("DROP TABLE IF EXISTS document_tables")
+	// db.Exec("DROP TABLE IF EXISTS detail_documents")
+	// db.Exec("DROP TABLE IF EXISTS documents")
+
 	SeedProfiles(db)
-	SeedDevAuthorizedIPAddress(db)
+	SeedShifts(db)
 	SeedUsers(db)
 	SeedKitchens(db)
+	SeedDevAuthorizedIPAddress(db)
+	SeedHostingCenters(db)
+	SeedDocumentsAndReports(db)
+	MigrateProcedures(db)
 
-	AutoMigrateTable(db, &domain.Shifts{})
+	// this function is used to create the tables of the document definition
+	MigrateDocumentTables(db)
+
+	latency := time.Since(startTimePoint)
+	fmt.Println("RunSeeds end operation " + latency.String())
+	fmt.Println("====================================================================================")
 }
 
 func SeedUsers(db *gorm.DB) {
@@ -44,33 +69,26 @@ func SeedUsers(db *gorm.DB) {
 	rootProfile := domain.UserProfiles{}
 	db.Model(&domain.UserProfiles{}).Where("slug = ?", "root").First(&rootProfile)
 
-	users := []*domain.User{
+	users := []domain.User{
 		{
 			UserData: domain.UserData{
-				Username:  "jose_dwit",
-				Email:     "joseguzmandev@gmail.com",
-				Name:      "Jose Guzman",
-				ProfileID: rootProfile.ID,
+				Username: "dwitmx",
+				Email:    "sistemas@dwitmexico.com",
+				Name:     "Dwit México",
+				IsActive: true,
 			},
-			Password: "password",
+			ProfileID: rootProfile.ID,
+			Password:  "password",
 		},
 		{
 			UserData: domain.UserData{
-				Username:  "diego_dwit",
-				Email:     "diegogutcat@gmail.com",
-				Name:      "Diego Gutierrez",
-				ProfileID: rootProfile.ID,
+				Username: "romanshkvolkov",
+				Email:    "jose@guz-studio.dev",
+				Name:     "Romanshk Volkov",
+				IsActive: true,
 			},
-			Password: "password",
-		},
-		{
-			UserData: domain.UserData{
-				Username:  "itzel_dwit",
-				Email:     "itzelramonf@gmail.com",
-				Name:      "Itzram",
-				ProfileID: rootProfile.ID,
-			},
-			Password: "password",
+			ProfileID: rootProfile.ID,
+			Password:  "password",
 		},
 	}
 
@@ -104,14 +122,6 @@ func SeedProfiles(db *gorm.DB) {
 		{
 			Name: "Cliente",
 			Slug: "customer",
-		},
-		{
-			Name: "Encargado",
-			Slug: "manager",
-		},
-		{
-			Name: "Cocinero",
-			Slug: "cook",
 		},
 	}
 
@@ -148,6 +158,7 @@ func SeedKitchens(db *gorm.DB) {
 }
 
 func SeedShifts(db *gorm.DB) {
+	AutoMigrateTable(db, &domain.Shift{})
 }
 
 func SeedPermissions(db *gorm.DB) {
@@ -182,4 +193,300 @@ func SeedPermissions(db *gorm.DB) {
 	// 		Path: "/dashboard/managment",
 	// 	},
 	// }
+}
+
+func SeedHostingCenters(db *gorm.DB) {
+	AutoMigrateTable(db, &domain.HostingCenter{})
+	defaultHostingCenter := domain.HostingCenter{
+		Name:        "Default",
+		CompanyName: "Default",
+	}
+
+	var currentRows int64
+	db.Model(&domain.HostingCenter{}).Count(&currentRows)
+
+	if currentRows > 0 {
+		return
+	}
+	db.Create(&defaultHostingCenter)
+}
+
+func SeedDocumentsAndReports(db *gorm.DB) {
+	AutoMigrateTable(db, &domain.Document{})
+	AutoMigrateTable(db, &domain.DetailDocument{})
+	AutoMigrateTable(db, &domain.Reports{})
+	AutoMigrateTable(db, &domain.ChartReports{})
+
+	var currentRows int64
+	db.Model(&domain.Document{}).Count(&currentRows)
+
+	if currentRows > 0 {
+		return
+	}
+
+	documents := []*domain.DocumentWithDetails{
+		{
+			Document: domain.Document{
+				Name:  "Alimentos",
+				Table: "foods",
+			},
+			Details: []domain.DetailDocument{
+				{
+					Field:       "code",
+					TypeField:   "NVARCHAR(20)",
+					DocumentKey: "CLAVE",
+				},
+				{
+					Field:       "description",
+					TypeField:   "NVARCHAR(300)",
+					DocumentKey: "DESCRIPCIÓN",
+				},
+				{
+					Field:       "category",
+					TypeField:   "NVARCHAR(100)",
+					DocumentKey: "CATEGORÍA",
+				},
+				{
+					Field:       "purchase_unit",
+					TypeField:   "NVARCHAR(20)",
+					DocumentKey: "UNIDAD DE COMPRA",
+				},
+			},
+		},
+		{
+			Document: domain.Document{
+				Name:  "Platillos",
+				Table: "dishes",
+			},
+			Details: []domain.DetailDocument{
+				{
+					Field:       "code",
+					TypeField:   "NVARCHAR(20)",
+					DocumentKey: "CLAVE",
+				},
+				{
+					Field:       "description",
+					TypeField:   "NVARCHAR(300)",
+					DocumentKey: "DESCRIPCIÓN",
+				},
+				{
+					Field:       "category",
+					TypeField:   "NVARCHAR(100)",
+					DocumentKey: "CATEGORIA",
+				},
+				{
+					Field:       "unit",
+					TypeField:   "NVARCHAR(20)",
+					DocumentKey: "UNIDAD",
+				},
+			},
+		},
+		{
+			Document: domain.Document{
+				Name:  "Costos",
+				Table: "costs",
+			},
+			Details: []domain.DetailDocument{
+				// CLAVE	DESCRIPCIÓN	COSTO	Fecha
+				{
+					Field:       "code",
+					TypeField:   "NVARCHAR(20)",
+					DocumentKey: "CLAVE",
+				}, {
+					Field:       "description",
+					TypeField:   "NVARCHAR(300)",
+					DocumentKey: "DESCRIPCIÓN",
+				},
+				{
+					Field:       "cost",
+					TypeField:   "DECIMAL(10,2)",
+					DocumentKey: "COSTO",
+				},
+				{
+					Field:       "date",
+					TypeField:   "DATETIME",
+					DocumentKey: "FECHA",
+				},
+			},
+		},
+		{
+			Document: domain.Document{
+				Name:  "Menús",
+				Table: "menus",
+			},
+			Details: []domain.DetailDocument{
+				// CLAVE	DESCRIPCIÓN	TURNO	COCINA	DESDE	HASTA
+				{
+					Field:       "code",
+					TypeField:   "NVARCHAR(20)",
+					DocumentKey: "CLAVE",
+				},
+				{
+					Field:       "description",
+					TypeField:   "NVARCHAR(300)",
+					DocumentKey: "DESCRIPCIÓN",
+				},
+				{
+					Field:       "shift",
+					TypeField:   "NVARCHAR(100)",
+					DocumentKey: "TURNO",
+				},
+				{
+					Field:       "kitchen",
+					TypeField:   "NVARCHAR(100)",
+					DocumentKey: "COCINA",
+				},
+				{
+					Field:       "date_from",
+					TypeField:   "DATETIME",
+					DocumentKey: "DESDE",
+				},
+				{
+					Field:       "date_to",
+					TypeField:   "DATETIME",
+					DocumentKey: "HASTA",
+				},
+			},
+		},
+		{
+			Document: domain.Document{
+				Name:  "Mermas",
+				Table: "foos_waste",
+			},
+			Details: []domain.DetailDocument{
+				// CLAVE	DESCRIPCIÓN	CANTIDAD	UNIDAD	DÍA	TURNO	COCINA
+				{
+					Field:       "code",
+					TypeField:   "NVARCHAR(20)",
+					DocumentKey: "CLAVE",
+				},
+				{
+					Field:       "description",
+					TypeField:   "NVARCHAR(300)",
+					DocumentKey: "DESCRIPCIÓN",
+				},
+				{
+					Field:       "quantity",
+					TypeField:   "DECIMAL(10,2)",
+					DocumentKey: "CANTIDAD",
+				},
+				{
+					Field:       "unit",
+					TypeField:   "NVARCHAR(20)",
+					DocumentKey: "UNIDAD",
+				},
+				{
+					Field:       "day",
+					TypeField:   "DATETIME",
+					DocumentKey: "DÍA",
+				},
+				{
+					Field:       "shift",
+					TypeField:   "NVARCHAR(100)",
+					DocumentKey: "TURNO",
+				},
+			},
+		},
+		{
+			Document: domain.Document{
+				Name:  "Consumo",
+				Table: "consumption",
+			},
+			Details: []domain.DetailDocument{
+				// CLAVE	DESCRIPCIÓN	CANTIDAD	UNIDAD	TURNO	COCINA
+				{
+					Field:       "code",
+					TypeField:   "NVARCHAR(20)",
+					DocumentKey: "CLAVE",
+				},
+				{
+					Field:       "description",
+					TypeField:   "NVARCHAR(300)",
+					DocumentKey: "DESCRIPCIÓN",
+				},
+				{
+					Field:       "quantity",
+					TypeField:   "DECIMAL(10,2)",
+					DocumentKey: "CANTIDAD",
+				},
+				{
+					Field:       "unit",
+					TypeField:   "NVARCHAR(20)",
+					DocumentKey: "UNIDAD",
+				},
+				{
+					Field:       "shift",
+					TypeField:   "NVARCHAR(100)",
+					DocumentKey: "TURNO",
+				},
+				{
+					Field:       "kitchen",
+					TypeField:   "NVARCHAR(100)",
+					DocumentKey: "COCINA",
+				},
+			},
+		},
+		{
+			Document: domain.Document{
+				Name:  "Asistencia",
+				Table: "attendance",
+			},
+			Details: []domain.DetailDocument{
+				// COCINA TURNO PORCENTAJE
+				{
+					Field:       "kitchen",
+					TypeField:   "NVARCHAR(100)",
+					DocumentKey: "COCINA",
+				},
+				{
+					Field:       "shift",
+					TypeField:   "NVARCHAR(100)",
+					DocumentKey: "TURNO",
+				},
+				{
+					Field:       "percentage",
+					TypeField:   "DECIMAL(10,2)",
+					DocumentKey: "PORCENTAJE",
+				},
+			},
+		},
+	}
+
+	for _, document := range documents {
+		db.Create(&document.Document)
+		for _, detail := range document.Details {
+			detail.DocumentID = document.Document.ID
+			detail.DocumentKey = RemoveSpaces(RemoveAccents(detail.DocumentKey))
+			db.Create(&detail)
+		}
+	}
+}
+
+func MigrateDocumentTables(db *gorm.DB) {
+	documents := []domain.Document{}
+
+	currentRows := int64(0)
+	db.Model(&domain.Document{}).Count(&currentRows)
+
+	if currentRows == 0 {
+		return
+	}
+
+	db.Find(&documents)
+
+	for _, document := range documents {
+		table := document.Table
+
+		isExist := ExistTable(db, table)
+		if isExist {
+			continue
+		}
+
+		id := document.ID
+		_, err := ExecuteProcedureSQLServer(db, "sp_CreateTableToDocument", id)
+		if err != nil {
+			fmt.Println("Error when creating table: %w", err)
+		}
+
+	}
 }

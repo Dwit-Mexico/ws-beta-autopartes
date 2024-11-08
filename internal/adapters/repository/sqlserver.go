@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"database/sql"
 	"fmt"
 
 	"gorm.io/driver/sqlserver"
@@ -14,7 +15,6 @@ var DSNList, _ = GetDSNList()
 var DBSQLServer []DSNSource
 
 func DBConnection() {
-	fmt.Println("DSNList: ", DSNList)
 	for _, dsn := range DSNList {
 		db, err := gorm.Open(sqlserver.Open(dsn.DSN), &gorm.Config{
 			Logger: logger.Default.LogMode(logger.Info),
@@ -36,6 +36,7 @@ func DBConnection() {
 
 func GetDBConnection(subdomain string) DSNSource {
 	fmt.Println("Subdomain: ", subdomain)
+	// pending replace to read subdomain and match with DBSQLServer list
 	authorizedHost := MAPPED_AUTHORIZED_DOMAINS[subdomain]
 	for _, db := range DBSQLServer {
 		if db.Name == authorizedHost {
@@ -45,4 +46,31 @@ func GetDBConnection(subdomain string) DSNSource {
 	}
 
 	return DSNSource{}
+}
+
+type StoredProcedureParams struct {
+	Procedure string
+	Params    []interface{}
+}
+
+func ExecuteProcedureSQLServer(db *gorm.DB, procedure string, args ...interface{}) (*sql.Rows, error) {
+	query := fmt.Sprintf("EXEC %s", procedure)
+	for range args {
+		query += " ?,"
+	}
+
+	query = query[:len(query)-1]
+
+	result := db.Exec(query, args...)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	rows, err := result.Rows()
+	if err != nil {
+		return nil, err
+	}
+
+	return rows, nil
+
 }

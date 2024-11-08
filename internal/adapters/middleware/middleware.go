@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/RomanshkVolkov/test-api/internal/adapters/repository"
+	"github.com/RomanshkVolkov/test-api/internal/core/domain"
 	"github.com/gin-gonic/gin"
 )
 
@@ -31,7 +32,12 @@ func Middleware() gin.HandlerFunc {
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
 
 		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(http.StatusNoContent)
+			c.AbortWithStatusJSON(http.StatusForbidden, domain.APIResponse[string, any]{
+				Message: domain.Message{
+					En: "Forbidden",
+					Es: "Запрещено",
+				},
+			})
 			return
 		}
 

@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/RomanshkVolkov/test-api/internal/core/domain"
@@ -28,6 +30,23 @@ func ServerError(err error, message domain.Message) domain.APIResponse[any, any]
 		Error:   err,
 	}
 	return response
+}
+
+func ParseUint(c *gin.Context, paramName string) (uint, error) {
+	stringParam := c.Param(paramName)
+	id, err := strconv.ParseUint(stringParam, 10, 64)
+	if err != nil {
+		InvalidParamError(c, paramName, err)
+	}
+
+	return uint(id), err
+}
+
+func InvalidParamError(c *gin.Context, paramName string, err error) {
+	c.IndentedJSON(http.StatusBadRequest, ServerError(err, domain.Message{
+		En: "Invalid parameter " + paramName,
+		Es: "Parámetro inválido " + paramName,
+	}))
 }
 
 func GetSubdomain(c *gin.Context) string {

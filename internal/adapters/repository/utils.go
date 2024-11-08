@@ -71,3 +71,49 @@ func TxtToRandomNumbers(s string) string {
 func CurrentTime() string {
 	return time.Now().UTC().Format("2024-01-01 13:01:01")
 }
+
+func Capitalize(s string) string {
+	firstLetter := strings.ToUpper(string(s[0]))
+	restLetters := strings.ToLower(s[1:])
+	return firstLetter + restLetters
+}
+
+func CapitalizeAll(s string) string {
+	words := strings.Split(s, " ")
+	var capitalizedWords []string
+	for _, word := range words {
+		capitalizedWords = append(capitalizedWords, Capitalize(word))
+	}
+	return strings.Join(capitalizedWords, " ")
+}
+
+func RemoveAccents(str string) string {
+	charReplacer := map[rune]rune{
+		'Á': 'A',
+		'É': 'E',
+		'Í': 'I',
+		'Ó': 'O',
+		'Ú': 'U',
+		'á': 'a',
+		'é': 'e',
+		'í': 'i',
+		'ó': 'o',
+		'ú': 'u',
+	}
+
+	var result strings.Builder
+
+	for _, char := range str {
+		if newChar, ok := charReplacer[char]; ok {
+			result.WriteRune(newChar)
+		} else {
+			result.WriteRune(char)
+		}
+	}
+
+	return result.String()
+}
+
+func RemoveSpaces(s string) string {
+	return strings.ReplaceAll(s, " ", "_")
+}

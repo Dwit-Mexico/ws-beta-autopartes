@@ -26,6 +26,9 @@ func InitRoutes(r *gin.Engine) {
 	AuthRoutes(r)
 	UserRoutes(r)
 	MailRoutes(r)
+	CatalogRoutes(r)
+	HostingCenterRoutes(r)
+	DocumentRoutes(r)
 
 	// root route
 	r.GET("/", func(c *gin.Context) {
