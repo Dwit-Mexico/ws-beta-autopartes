@@ -11,7 +11,7 @@ import (
 func InitRoutes(r *gin.Engine) {
 	// 404 route
 	r.NoRoute(func(c *gin.Context) {
-		c.IndentedJSON(http.StatusNotFound, domain.APIResponse[any, any]{
+		c.IndentedJSON(http.StatusNotFound, domain.APIResponse[any]{
 			Success: false,
 			Message: domain.Message{
 				En: "Route not found",
@@ -29,6 +29,7 @@ func InitRoutes(r *gin.Engine) {
 	CatalogRoutes(r)
 	HostingCenterRoutes(r)
 	DocumentRoutes(r)
+	InternalRoutes(r)
 
 	// root route
 	r.GET("/", func(c *gin.Context) {
@@ -40,7 +41,7 @@ func InitRoutes(r *gin.Engine) {
 			userID = id.(uint)
 		}
 
-		c.IndentedJSON(http.StatusOK, domain.APIResponse[any, any]{
+		c.IndentedJSON(http.StatusOK, domain.APIResponse[any]{
 			Success: true,
 			Message: domain.Message{
 				En: "Welcome to the API",

@@ -22,8 +22,8 @@ func ValidateRequest[T any](c *gin.Context) (*T, error) {
 	return &request, nil
 }
 
-func ServerError(err error, message domain.Message) domain.APIResponse[any, any] {
-	response := domain.APIResponse[any, any]{
+func ServerError(err error, message domain.Message) domain.APIResponse[any] {
+	response := domain.APIResponse[any]{
 		Success: false,
 		Message: message,
 		Data:    nil,
@@ -32,7 +32,7 @@ func ServerError(err error, message domain.Message) domain.APIResponse[any, any]
 	return response
 }
 
-func ParseUint(c *gin.Context, paramName string) (uint, error) {
+func ExtractAndParseUintParam(c *gin.Context, paramName string) (uint, error) {
 	stringParam := c.Param(paramName)
 	id, err := strconv.ParseUint(stringParam, 10, 64)
 	if err != nil {

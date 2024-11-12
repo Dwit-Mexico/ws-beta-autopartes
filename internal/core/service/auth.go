@@ -10,11 +10,11 @@ import (
 	schema "github.com/RomanshkVolkov/test-api/internal/core/domain/schemas"
 )
 
-func (server Server) SignIn(username string, password string) (domain.APIResponse[domain.SignInResponse, any], error) {
+func (server Server) SignIn(username string, password string) (domain.APIResponse[domain.SignInResponse], error) {
 	repo := repository.GetDBConnection(server.Host)
 	user, err := repo.FindByUsername(username)
 	if err != nil || user.ID == 0 {
-		return domain.APIResponse[domain.SignInResponse, any]{
+		return domain.APIResponse[domain.SignInResponse]{
 			Success: false,
 			Message: domain.Message{
 				En: "User not found",
@@ -25,7 +25,7 @@ func (server Server) SignIn(username string, password string) (domain.APIRespons
 	}
 
 	if !user.IsActive {
-		return domain.APIResponse[domain.SignInResponse, any]{
+		return domain.APIResponse[domain.SignInResponse]{
 			Success: false,
 			Message: domain.Message{
 				En: "User is not active",
@@ -37,7 +37,7 @@ func (server Server) SignIn(username string, password string) (domain.APIRespons
 	validatedPassword := repository.ComparePasswords(user.Password, password)
 
 	if !validatedPassword {
-		return domain.APIResponse[domain.SignInResponse, any]{
+		return domain.APIResponse[domain.SignInResponse]{
 			Success: false,
 			Message: domain.Message{
 				En: "Invalid credentials",
@@ -49,7 +49,7 @@ func (server Server) SignIn(username string, password string) (domain.APIRespons
 	token, err := repository.SigninJWT(user)
 
 	if err != nil {
-		return domain.APIResponse[domain.SignInResponse, any]{
+		return domain.APIResponse[domain.SignInResponse]{
 			Success: false,
 			Message: domain.Message{
 				En: "Error on sign in JWT",
@@ -57,7 +57,7 @@ func (server Server) SignIn(username string, password string) (domain.APIRespons
 			},
 		}, nil
 	}
-	return domain.APIResponse[domain.SignInResponse, any]{
+	return domain.APIResponse[domain.SignInResponse]{
 		Success: true,
 		Message: domain.Message{
 			En: "Welcome back",
@@ -75,11 +75,11 @@ func (server Server) SignIn(username string, password string) (domain.APIRespons
 	}, nil
 }
 
-func (server Server) SignUp(request *domain.NewUser) (domain.APIResponse[domain.UserData, any], error) {
+func (server Server) SignUp(request *domain.NewUser) (domain.APIResponse[domain.UserData], error) {
 	fields := schema.GenericForm[domain.NewUser]{Data: *request}
 	failValidatedFields := schema.FormValidator(fields)
 	if len(failValidatedFields) > 0 {
-		return domain.APIResponse[domain.UserData, any]{
+		return domain.APIResponse[domain.UserData]{
 			Success: false,
 			Message: domain.Message{
 				En: "Check the fields",
@@ -97,7 +97,7 @@ func (server Server) SignUp(request *domain.NewUser) (domain.APIResponse[domain.
 	repo := repository.GetDBConnection(server.Host)
 	existUser, err := repo.FindByUsernameOrEmail(request.Username, request.Email)
 	if err != nil {
-		return domain.APIResponse[domain.UserData, any]{
+		return domain.APIResponse[domain.UserData]{
 			Success: false,
 			Message: domain.Message{
 				En: "User not found",
@@ -108,7 +108,7 @@ func (server Server) SignUp(request *domain.NewUser) (domain.APIResponse[domain.
 	}
 
 	if existUser.ID != 0 {
-		return domain.APIResponse[domain.UserData, any]{
+		return domain.APIResponse[domain.UserData]{
 			Success: false,
 			Message: domain.Message{
 				En: "User already exists",
@@ -120,7 +120,7 @@ func (server Server) SignUp(request *domain.NewUser) (domain.APIResponse[domain.
 	user, err := repo.NewUser(request)
 
 	if err != nil {
-		return domain.APIResponse[domain.UserData, any]{
+		return domain.APIResponse[domain.UserData]{
 			Success: false,
 			Message: domain.Message{
 				En: "Error on save user",
@@ -129,7 +129,7 @@ func (server Server) SignUp(request *domain.NewUser) (domain.APIResponse[domain.
 		}, nil
 	}
 
-	return domain.APIResponse[domain.UserData, any]{
+	return domain.APIResponse[domain.UserData]{
 		Success: true,
 		Message: domain.Message{
 			En: "User created successfully",
@@ -139,11 +139,11 @@ func (server Server) SignUp(request *domain.NewUser) (domain.APIResponse[domain.
 	}, nil
 }
 
-func (server Server) ResetPasswordRequest(request *domain.PasswordResetRequest) (domain.APIResponse[string, any], error) {
+func (server Server) ResetPasswordRequest(request *domain.PasswordResetRequest) (domain.APIResponse[string], error) {
 	repo := repository.GetDBConnection(server.Host)
 	user, err := repo.SaveOTPCode(request.Username)
 	if err != nil {
-		return domain.APIResponse[string, any]{
+		return domain.APIResponse[string]{
 			Success: false,
 			Message: domain.Message{
 				En: "Error on save OTP code",
@@ -187,7 +187,7 @@ func (server Server) ResetPasswordRequest(request *domain.PasswordResetRequest) 
 	done, err := SendMail(mailOptions)
 	fmt.Println(err)
 	if !done {
-		return domain.APIResponse[string, any]{
+		return domain.APIResponse[string]{
 			Success: true,
 			Message: domain.Message{
 				En: "Error on send email",
@@ -197,7 +197,7 @@ func (server Server) ResetPasswordRequest(request *domain.PasswordResetRequest) 
 		}, nil
 	}
 
-	return domain.APIResponse[string, any]{
+	return domain.APIResponse[string]{
 		Success: true,
 		Message: domain.Message{
 			En: "Email sent with the OTP code",
@@ -206,11 +206,11 @@ func (server Server) ResetPasswordRequest(request *domain.PasswordResetRequest) 
 	}, nil
 }
 
-func (server Server) VerifyForgottenPasswordCode(request *domain.ForgottenPasswordCode) (domain.APIResponse[string, any], error) {
+func (server Server) VerifyForgottenPasswordCode(request *domain.ForgottenPasswordCode) (domain.APIResponse[string], error) {
 	fields := schema.GenericForm[domain.ForgottenPasswordCode]{Data: *request}
 	failValidatedFields := schema.FormValidator(fields)
 	if len(failValidatedFields) > 0 {
-		return domain.APIResponse[string, any]{
+		return domain.APIResponse[string]{
 			Success: false,
 			Message: domain.Message{
 				En: "Check the fields",
@@ -223,7 +223,7 @@ func (server Server) VerifyForgottenPasswordCode(request *domain.ForgottenPasswo
 	repo := repository.GetDBConnection(server.Host)
 	user, scheme, err := repo.FindAndValidateOTP(fields.Data.Username, fields.Data.OTP)
 	if err != nil || user.ID == 0 {
-		return domain.APIResponse[string, any]{
+		return domain.APIResponse[string]{
 			Success: false,
 			Message: domain.Message{
 				En: "Your code is incorrect",
@@ -235,7 +235,7 @@ func (server Server) VerifyForgottenPasswordCode(request *domain.ForgottenPasswo
 	}
 
 	if len(scheme) > 0 {
-		return domain.APIResponse[string, any]{
+		return domain.APIResponse[string]{
 			Success: false,
 			Message: domain.Message{
 				En: "Check the fields",
@@ -245,7 +245,7 @@ func (server Server) VerifyForgottenPasswordCode(request *domain.ForgottenPasswo
 		}, nil
 	}
 
-	return domain.APIResponse[string, any]{
+	return domain.APIResponse[string]{
 		Success: true,
 		Message: domain.Message{
 			En: "Your code is correct",
@@ -255,11 +255,11 @@ func (server Server) VerifyForgottenPasswordCode(request *domain.ForgottenPasswo
 	}, nil
 }
 
-func (server Server) ResetForgottenPassword(request *domain.ResetForgottenPassword) (domain.APIResponse[string, any], error) {
+func (server Server) ResetForgottenPassword(request *domain.ResetForgottenPassword) (domain.APIResponse[string], error) {
 	fields := schema.GenericForm[domain.ResetForgottenPassword]{Data: *request}
 	failValidatedFields := schema.FormValidator(fields)
 	if len(failValidatedFields) > 0 {
-		return domain.APIResponse[string, any]{
+		return domain.APIResponse[string]{
 			Success: false,
 			Message: domain.Message{
 				En: "Check the fields",
@@ -271,7 +271,7 @@ func (server Server) ResetForgottenPassword(request *domain.ResetForgottenPasswo
 
 	equalPasswords := request.Password == request.ConfirmPassword
 	if !equalPasswords {
-		return domain.APIResponse[string, any]{
+		return domain.APIResponse[string]{
 			Success: false,
 			Message: domain.Message{
 				En: "Passwords do not match",
@@ -288,7 +288,7 @@ func (server Server) ResetForgottenPassword(request *domain.ResetForgottenPasswo
 	user, scheme, err := repo.FindAndValidateOTP(request.Username, request.OTP)
 	if err != nil {
 		scheme["otp"] = []string{"Tu código es incorrecto"}
-		return domain.APIResponse[string, any]{
+		return domain.APIResponse[string]{
 			Success: false,
 			Message: domain.Message{
 				En: "Your code is incorrect",
@@ -304,7 +304,7 @@ func (server Server) ResetForgottenPassword(request *domain.ResetForgottenPasswo
 	}
 
 	if len(scheme) > 0 {
-		return domain.APIResponse[string, any]{
+		return domain.APIResponse[string]{
 			Success: false,
 			Message: domain.Message{
 				En: "Check the fields",
@@ -316,7 +316,7 @@ func (server Server) ResetForgottenPassword(request *domain.ResetForgottenPasswo
 
 	err = repo.UpdatePassword(user.ID, request.Password)
 	if err != nil {
-		return domain.APIResponse[string, any]{
+		return domain.APIResponse[string]{
 			Success: false,
 			Message: domain.Message{
 				En: "Error on update password",
@@ -326,7 +326,7 @@ func (server Server) ResetForgottenPassword(request *domain.ResetForgottenPasswo
 		}, nil
 	}
 
-	return domain.APIResponse[string, any]{
+	return domain.APIResponse[string]{
 		Success: true,
 		Message: domain.Message{
 			En: "Password updated",
@@ -335,11 +335,11 @@ func (server Server) ResetForgottenPassword(request *domain.ResetForgottenPasswo
 	}, nil
 }
 
-func (server Server) ChangePassword(user repository.CustomClaims, request *domain.ChangePassword) (domain.APIResponse[string, any], error) {
+func (server Server) ChangePassword(user repository.CustomClaims, request *domain.ChangePassword) (domain.APIResponse[string], error) {
 	fields := schema.GenericForm[domain.ChangePassword]{Data: *request}
 	failValidatedFields := schema.FormValidator(fields)
 	if len(failValidatedFields) > 0 {
-		return domain.APIResponse[string, any]{
+		return domain.APIResponse[string]{
 			Success: false,
 			Message: domain.Message{
 				En: "Check the fields",
@@ -357,7 +357,7 @@ func (server Server) ChangePassword(user repository.CustomClaims, request *domai
 
 	validatedPassword := repository.ComparePasswords(userData.Password, request.CurrentPassword)
 	if !validatedPassword {
-		return domain.APIResponse[string, any]{
+		return domain.APIResponse[string]{
 			Success: false,
 			Message: domain.Message{
 				En: "Your current password is incorrect",
@@ -371,7 +371,7 @@ func (server Server) ChangePassword(user repository.CustomClaims, request *domai
 
 	equalPasswords := request.Password == request.ConfirmPassword
 	if !equalPasswords {
-		return domain.APIResponse[string, any]{
+		return domain.APIResponse[string]{
 			Success: false,
 			Message: domain.Message{
 				En: "Passwords do not match",
@@ -386,7 +386,7 @@ func (server Server) ChangePassword(user repository.CustomClaims, request *domai
 
 	onUpdatedError := repo.UpdatePassword(user.ID, request.Password)
 	if onUpdatedError != nil {
-		return domain.APIResponse[string, any]{
+		return domain.APIResponse[string]{
 			Success: false,
 			Message: domain.Message{
 				En: "Error on update password",
@@ -396,7 +396,7 @@ func (server Server) ChangePassword(user repository.CustomClaims, request *domai
 		}, nil
 	}
 
-	return domain.APIResponse[string, any]{
+	return domain.APIResponse[string]{
 		Success: true,
 		Message: domain.Message{
 			En: "Password updated",

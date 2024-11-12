@@ -17,7 +17,7 @@ func GetDocuments(c *gin.Context) {
 
 func GetDocumentByID(c *gin.Context) {
 	server := service.GetServer(c)
-	id, err := ParseUint(c, "id")
+	id, err := ExtractAndParseUintParam(c, "id")
 	if err != nil {
 		return
 	}
@@ -25,6 +25,55 @@ func GetDocumentByID(c *gin.Context) {
 	document := server.GetDocumentByID(id)
 
 	c.IndentedJSON(http.StatusOK, document)
+}
+
+func UpdateDocument(c *gin.Context) {
+	request, err := ValidateRequest[domain.EditableDocument](c)
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, ServerError(err, RequestError))
+		return
+	}
+
+	id, err := ExtractAndParseUintParam(c, "id")
+	if err != nil {
+		InvalidParamError(c, "id", err)
+		return
+	}
+
+	if id != request.ID {
+		InvalidParamError(c, "id", nil)
+		return
+	}
+
+	server := service.GetServer(c)
+
+	updatedDocument := server.UpdateDocument(request)
+	// update document
+	c.IndentedJSON(http.StatusOK, updatedDocument)
+}
+
+func DeleteDocument(c *gin.Context) {
+	server := service.GetServer(c)
+	id, err := ExtractAndParseUintParam(c, "id")
+	if err != nil {
+		return
+	}
+
+	response := server.DeleteDocument(id)
+
+	c.IndentedJSON(http.StatusOK, response)
+}
+
+func DeleteFieldDocument(c *gin.Context) {
+	server := service.GetServer(c)
+	id, err := ExtractAndParseUintParam(c, "id")
+	if err != nil {
+		return
+	}
+
+	response := server.DeleteFieldDocument(id)
+
+	c.IndentedJSON(http.StatusOK, response)
 }
 
 func CreateDocument(c *gin.Context) {
@@ -49,7 +98,7 @@ func GetTables(c *gin.Context) {
 
 func GetTableByID(c *gin.Context) {
 	server := service.GetServer(c)
-	id, err := ParseUint(c, "id")
+	id, err := ExtractAndParseUintParam(c, "id")
 	if err != nil {
 		return
 	}

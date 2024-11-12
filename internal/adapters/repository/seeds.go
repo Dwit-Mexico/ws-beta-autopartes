@@ -39,6 +39,7 @@ func RunSeeds(db *gorm.DB) {
 	// db.Exec("DROP TABLE IF EXISTS detail_documents")
 	// db.Exec("DROP TABLE IF EXISTS documents")
 
+	SeedPermissions(db)
 	SeedProfiles(db)
 	SeedShifts(db)
 	SeedUsers(db)
@@ -171,28 +172,6 @@ func SeedPermissions(db *gorm.DB) {
 		return
 	}
 
-	// permissions := []*domain.Permission{
-	// 	{
-	// 		Name: "Dashboard",
-	// 		Path: "/dashboard",
-	// 	},
-	// 	{
-	// 		Name: "Configuración",
-	// 		Path: "/dashboard/settings",
-	// 	},
-	// 	{
-	// 		Name: "Usuarios",
-	// 		Path: "/dashboard/settings/users",
-	// 	},
-	// 	{
-	// 		Name: "Platillos",
-	// 		Path: "/dashboard/dishes",
-	// 	},
-	// 	{
-	// 		Name: "Administración",
-	// 		Path: "/dashboard/managment",
-	// 	},
-	// }
 }
 
 func SeedHostingCenters(db *gorm.DB) {
@@ -445,7 +424,7 @@ func SeedDocumentsAndReports(db *gorm.DB) {
 				},
 				{
 					Field:       "percentage",
-					TypeField:   "DECIMAL(10,2)",
+					TypeField:   "DECIMAL(10, 2)",
 					DocumentKey: "PORCENTAJE",
 				},
 			},

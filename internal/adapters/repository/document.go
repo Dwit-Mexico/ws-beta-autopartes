@@ -72,6 +72,109 @@ func (database *DSNSource) CreateDocument(document domain.DocumentWithDetails) (
 	return document, nil
 }
 
+func (database *DSNSource) UpdateDocument(document domain.EditableDocument) (domain.DocumentWithDetails, error) {
+	tx := database.DB.Begin()
+
+	document.Name = Capitalize(document.Name)
+	err := tx.Model(&domain.Document{}).Where("id = ?", document.ID).Updates(domain.Document{Name: document.Name}).Error
+	if err != nil {
+		tx.Rollback()
+		return domain.DocumentWithDetails{}, err
+	}
+
+	for _, detail := range document.Details {
+		detail.DocumentID = document.ID
+		detail.Field = strings.ToLower(strings.ReplaceAll(detail.Field, " ", "_"))
+		if detail.ID == 0 {
+			// new record
+			err = tx.Create(&detail).Error
+			if err != nil {
+				tx.Rollback()
+				return domain.DocumentWithDetails{}, err
+			}
+
+			err = tx.Exec("EXEC sp_AddFieldToDocument @id = ?, @documentID = ?", detail.ID, detail.DocumentID).Error
+			if err != nil {
+				tx.Rollback()
+				return domain.DocumentWithDetails{}, err
+			}
+		} else {
+			fmt.Println("detail", detail)
+			err = tx.Model(&domain.DetailDocument{}).Where("id = ?", detail.ID).Updates(domain.DetailDocument{DocumentKey: detail.DocumentKey}).Error
+			if err != nil {
+				tx.Rollback()
+				return domain.DocumentWithDetails{}, err
+			}
+		}
+	}
+
+	tx.Commit()
+
+	currentDocument := domain.Document{}
+
+	err = database.DB.Model(&domain.Document{}).Where("id = ?", document.ID).First(&currentDocument).Error
+	if err != nil {
+		return domain.DocumentWithDetails{}, err
+	}
+
+	return domain.DocumentWithDetails{
+		Document: currentDocument,
+		Details:  document.Details,
+	}, nil
+}
+
+func (database *DSNSource) DeleteFieldDocument(id uint) error {
+	tx := database.DB.Begin()
+
+	document := domain.DetailDocument{}
+
+	err := tx.Model(&domain.DetailDocument{}).Where("id = ?", id).First(&document).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	fieldDocument := domain.DetailDocument{}
+
+	err = tx.Exec("EXEC sp_DropFielToDocument @id = ?, @documentID = ?", id, document.DocumentID).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Model(&domain.DetailDocument{}).Where("id = ?", id).Delete(&fieldDocument).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+
+	return nil
+}
+
+func (database *DSNSource) DeleteDocument(id uint) error {
+	tx := database.DB.Begin()
+
+	document := domain.Document{}
+
+	err := tx.Model(&domain.Document{}).Where("id = ?", id).Delete(&document).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Exec("EXEC sp_DropTableByDocument @id = ?", id).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+
+	return nil
+}
+
 func (database *DSNSource) GetTables() ([]domain.Document, error) {
 	table := []domain.Document{}
 	err := database.DB.Model(&domain.Document{}).Find(&table).Error

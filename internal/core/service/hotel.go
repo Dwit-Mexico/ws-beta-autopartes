@@ -5,7 +5,7 @@ import (
 	"github.com/RomanshkVolkov/test-api/internal/core/domain"
 )
 
-func (server Server) GetCurrentHostingCenter() domain.APIResponse[domain.HostingCenter, any] {
+func (server Server) GetCurrentHostingCenter() domain.APIResponse[domain.HostingCenter] {
 	repo := repository.GetDBConnection(server.Host)
 	hotel, err := repo.GetCurrentHostingCenter()
 
@@ -13,7 +13,7 @@ func (server Server) GetCurrentHostingCenter() domain.APIResponse[domain.Hosting
 		return repository.RecordNotFound[domain.HostingCenter]()
 	}
 
-	return domain.APIResponse[domain.HostingCenter, any]{
+	return domain.APIResponse[domain.HostingCenter]{
 		Success: true,
 		Message: domain.Message{
 			En: "Current hosting center",
@@ -23,7 +23,7 @@ func (server Server) GetCurrentHostingCenter() domain.APIResponse[domain.Hosting
 	}
 }
 
-func (server Server) UpdateHostingCenter(request *domain.HostingCenter) domain.APIResponse[domain.HostingCenter, any] {
+func (server Server) UpdateHostingCenter(request *domain.HostingCenter) domain.APIResponse[domain.HostingCenter] {
 	repo := repository.GetDBConnection(server.Host)
 	hotel, err := repo.UpdateHostingCenter(domain.HostingCenter{
 		ID:          request.ID,
@@ -39,7 +39,7 @@ func (server Server) UpdateHostingCenter(request *domain.HostingCenter) domain.A
 		return repository.HandleDatabaseError[domain.HostingCenter](err, domain.Message{En: "Error on update hosting center", Es: "Error al actualizar centro de alojamiento"})
 	}
 
-	return domain.APIResponse[domain.HostingCenter, any]{
+	return domain.APIResponse[domain.HostingCenter]{
 		Success: true,
 		Message: domain.Message{
 			En: "Hosting center updated",

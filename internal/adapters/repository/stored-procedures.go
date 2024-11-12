@@ -137,6 +137,58 @@ BEGIN
     EXEC sp_executesql @sql, N'@file NVARCHAR(MAX)', @file = @file;
 END
 `
+const sp_DropTableByDocument = `CREATE PROCEDURE [dbo].sp_DropTableByDocument @id BIGINT
+AS
+BEGIN
+    DECLARE @table_name NVARCHAR(100);
+    SET @table_name = (SELECT TOP 1 [table] FROM documents WHERE id = @id)
+
+    IF (EXISTS (SELECT *
+                FROM INFORMATION_SCHEMA.tables
+                WHERE table_schema = 'dbo'
+                  AND table_name = @table_name))
+        BEGIN
+            DECLARE @sql NVARCHAR(200) = CONCAT('DROP TABLE dbo.', @table_name)
+
+            EXEC sp_executesql @sql;
+        END
+END
+`
+const sp_AddFieldToDocument = `CREATE PROCEDURE [dbo].sp_AddFieldToDocument @id BIGINT, @documentID BIGINT
+AS
+BEGIN
+    DECLARE
+        @field NVARCHAR(100),
+        @type_field NVARCHAR(50), @table_name NVARCHAR(100)
+
+
+    SELECT @field = field, @type_field = type_field
+    FROM detail_documents
+    WHERE id = @id
+
+    SET @table_name = (SELECT [table] FROM documents WHERE id = @documentID)
+    DECLARE @sql NVARCHAR(MAX) = CONCAT('ALTER TABLE ', @table_name, ' ADD ', @field, ' ', @type_field)
+
+    EXEC sp_executesql @sql
+END
+`
+const sp_DropFielToDocument = `CREATE PROCEDURE [dbo].sp_DropFielToDocument @id BIGINT, @documentID BIGINT
+AS
+BEGIN
+    BEGIN
+        DECLARE
+            @field NVARCHAR(100),
+            @table_name NVARCHAR(100)
+
+        SET @field = (SELECT field FROM detail_documents WHERE id = @id);
+        SET @table_name = (SELECT [table] FROM documents WHERE id = @documentID);
+
+        DECLARE @sql NVARCHAR(MAX) = CONCAT('ALTER TABLE ', @table_name, ' DROP COLUMN ', @field, ';')
+
+        EXEC sp_executesql @sql
+    END
+END
+`
 
 // functions
 const FuncDropEndChar = `CREATE FUNCTION fn_DropEndChar(@txt NVARCHAR(MAX))
@@ -214,5 +266,21 @@ func MigrateProcedures(db *gorm.DB) {
 	exist = ExistFunc(db, "fn_DropEndChars")
 	if !exist {
 		db.Exec(FuncDropEndChars)
+	}
+
+	exist = ExistSP(db, "sp_DropTableByDocument")
+	if !exist {
+		db.Exec(sp_DropTableByDocument)
+	}
+
+	exist = ExistSP(db, "sp_AddFieldToDocument")
+	if !exist {
+		db.Exec(sp_AddFieldToDocument)
+	}
+
+	// db.Exec("DROP PROCEDURE IF EXISTS sp_DropFielToDocument")
+	exist = ExistSP(db, "sp_DropFielToDocument")
+	if !exist {
+		db.Exec(sp_DropFielToDocument)
 	}
 }

@@ -327,8 +327,8 @@ func GenerateOTP(txt string) string {
 	return base[:6]
 }
 
-func RecordNotFound[T interface{}]() domain.APIResponse[T, any] {
-	return domain.APIResponse[T, any]{
+func RecordNotFound[T interface{}]() domain.APIResponse[T] {
+	return domain.APIResponse[T]{
 		Success: false,
 		Message: domain.Message{
 			En: "Record not found",
@@ -337,8 +337,8 @@ func RecordNotFound[T interface{}]() domain.APIResponse[T, any] {
 	}
 }
 
-func HandleDatabaseError[T interface{}](err error, message domain.Message) domain.APIResponse[T, any] {
-	return domain.APIResponse[T, any]{
+func HandleDatabaseError[T interface{}](err error, message domain.Message) domain.APIResponse[T] {
+	return domain.APIResponse[T]{
 		Success: false,
 		Message: message,
 		Error:   err,

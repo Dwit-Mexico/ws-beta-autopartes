@@ -9,12 +9,12 @@ type Message struct {
 	Es string `json:"es"`
 }
 
-type APIResponse[T any, Sch any] struct {
-	Success     bool    `json:"success"`
-	Message     Message `json:"message"`
-	Data        T       `json:"data" swaggerignore:"true"`
-	SchemaError Sch     `json:"schema" swaggerignore:"true"`
-	Error       error   `json:"error"`
+type APIResponse[T any] struct {
+	Success     bool                `json:"success"`
+	Message     Message             `json:"message"`
+	Data        T                   `json:"data" swaggerignore:"true"`
+	SchemaError map[string][]string `json:"schema" swaggerignore:"true"`
+	Error       error               `json:"error"`
 }
 
 type RequestInfo struct {

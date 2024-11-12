@@ -9,7 +9,7 @@ import (
 // table permissions - permisos
 type Permission struct {
 	ID   uint   `gorm:"primaryKey" json:"id"`
-	Name string `gorm:"type:nvarchar(300);not null" json:"name" validate:"required,min=3,max=300"`
+	Name string `gorm:"type:nvarchar(100);not null" json:"name" validate:"required,min=3,max=100"`
 	Path string `gorm:"type:nvarchar(300);not null" json:"path" validate:"required,min=3,max=300"`
 }
 
@@ -77,17 +77,17 @@ type Document struct {
 	CreatedAt time.Time      `json:"createdAt"`
 	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-	Name      string         `gorm:"type:nvarchar(300);not null" json:"name" validate:"required,min=3,max=300"`
-	Table     string         `gorm:"type:nvarchar(300);not null" json:"table" validate:"required,min=3,max=300"`
+	Name      string         `gorm:"type:nvarchar(100);not null" json:"name" validate:"required,min=3,max=100"`
+	Table     string         `gorm:"type:nvarchar(100);not null" json:"table" validate:"required,min=3,max=100"`
 }
 
 type DetailDocument struct {
 	ID          uint     `gorm:"primaryKey" json:"id"`
 	DocumentID  uint     `gorm:"not null" json:"-"`
 	Document    Document `gorm:"foreignKey:DocumentID;references:ID" json:"-"`
-	Field       string   `gorm:"type:nvarchar(300);not null" json:"field" validate:"required,min=3,max=300"`
-	TypeField   string   `gorm:"type:nvarchar(300);not null" json:"typeField" validate:"required,min=3,max=300"`
-	DocumentKey string   `gorm:"type:nvarchar(300);not null" json:"documentKey" validate:"required,min=3,max=300"`
+	Field       string   `gorm:"type:nvarchar(100);not null" json:"field" validate:"required,min=3,max=100"`
+	TypeField   string   `gorm:"type:nvarchar(50);not null" json:"typeField" validate:"required,min=3,max=50"`
+	DocumentKey string   `gorm:"type:nvarchar(100);not null" json:"documentKey" validate:"required,min=3,max=100"`
 }
 
 type DocumentReports struct {

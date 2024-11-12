@@ -5,12 +5,30 @@ type DocumentWithDetails struct {
 	Details []DetailDocument `json:"fields"`
 }
 
+type EditableDocument struct {
+	ID      uint             `json:"id"`
+	Name    string           `json:"name"`
+	Details []DetailDocument `json:"fields"`
+}
+
 type Align string
 
 const (
 	AlignStart  Align = "start"
 	AlignEnd    Align = "end"
 	AlignCenter Align = "center"
+)
+
+type DocumentDataTypes string
+
+const (
+	NVARCHARThreeHundred DocumentDataTypes = "NVARCHAR(300)"
+	NVARCHAROneHundred   DocumentDataTypes = "NVARCHAR(100)"
+	NVARCHARFifty        DocumentDataTypes = "NVARCHAR(50)"
+	NVARCHARTwenty       DocumentDataTypes = "NVARCHAR(20)"
+	INT                  DocumentDataTypes = "INT"
+	DECIMALTenTwo        DocumentDataTypes = "DECIMAL(10, 2)"
+	DATETIME             DocumentDataTypes = "DATETIME"
 )
 
 type DinamicTable struct {

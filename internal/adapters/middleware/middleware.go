@@ -32,7 +32,7 @@ func Middleware() gin.HandlerFunc {
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
 
 		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatusJSON(http.StatusForbidden, domain.APIResponse[string, any]{
+			c.AbortWithStatusJSON(http.StatusForbidden, domain.APIResponse[string]{
 				Message: domain.Message{
 					En: "Forbidden",
 					Es: "Запрещено",

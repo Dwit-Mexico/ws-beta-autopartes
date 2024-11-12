@@ -6,11 +6,11 @@ import (
 	schema "github.com/RomanshkVolkov/test-api/internal/core/domain/schemas"
 )
 
-func (server Server) GetKitchenByID(id uint) domain.APIResponse[domain.Kitchen, any] {
+func (server Server) GetKitchenByID(id uint) domain.APIResponse[domain.Kitchen] {
 	repo := repository.GetDBConnection(server.Host)
 	kitchen, err := repo.GetKitchenByID(id)
 	if err != nil {
-		return domain.APIResponse[domain.Kitchen, any]{
+		return domain.APIResponse[domain.Kitchen]{
 			Success: false,
 			Message: domain.Message{
 				En: "Error on get kitchen",
@@ -24,7 +24,7 @@ func (server Server) GetKitchenByID(id uint) domain.APIResponse[domain.Kitchen, 
 		return repository.RecordNotFound[domain.Kitchen]()
 	}
 
-	return domain.APIResponse[domain.Kitchen, any]{
+	return domain.APIResponse[domain.Kitchen]{
 		Success: true,
 		Message: domain.Message{
 			En: "Kitchen data",
@@ -33,11 +33,11 @@ func (server Server) GetKitchenByID(id uint) domain.APIResponse[domain.Kitchen, 
 		Data: kitchen,
 	}
 }
-func (server Server) GetShiftByID(id uint) domain.APIResponse[domain.Shift, any] {
+func (server Server) GetShiftByID(id uint) domain.APIResponse[domain.Shift] {
 	repo := repository.GetDBConnection(server.Host)
 	shift, err := repo.GetShiftByID(id)
 	if err != nil {
-		return domain.APIResponse[domain.Shift, any]{
+		return domain.APIResponse[domain.Shift]{
 			Success: false,
 			Message: domain.Message{
 				En: "Error on get kitchen",
@@ -51,7 +51,7 @@ func (server Server) GetShiftByID(id uint) domain.APIResponse[domain.Shift, any]
 		return repository.RecordNotFound[domain.Shift]()
 	}
 
-	return domain.APIResponse[domain.Shift, any]{
+	return domain.APIResponse[domain.Shift]{
 		Success: true,
 		Message: domain.Message{
 			En: "Kitchen data",
@@ -61,12 +61,12 @@ func (server Server) GetShiftByID(id uint) domain.APIResponse[domain.Shift, any]
 	}
 }
 
-func (server Server) UpdateGenericCatalog(request *domain.GenericCatalog, table interface{}) domain.APIResponse[domain.GenericCatalog, any] {
+func (server Server) UpdateGenericCatalog(request *domain.GenericCatalog, table interface{}) domain.APIResponse[domain.GenericCatalog] {
 	fields := schema.GenericForm[domain.GenericCatalog]{Data: *request}
 	failValidatedFields := schema.FormValidator(fields)
 
 	if len(failValidatedFields) > 0 {
-		return domain.APIResponse[domain.GenericCatalog, any]{
+		return domain.APIResponse[domain.GenericCatalog]{
 			Success: false,
 			Message: domain.Message{
 				En: "Invalid fields",
@@ -79,7 +79,7 @@ func (server Server) UpdateGenericCatalog(request *domain.GenericCatalog, table 
 	repo := repository.GetDBConnection(server.Host)
 	err := repo.UpdateGenericCatalog(fields.Data.ID, table, fields.Data.Name)
 	if err != nil {
-		return domain.APIResponse[domain.GenericCatalog, any]{
+		return domain.APIResponse[domain.GenericCatalog]{
 			Success: false,
 			Message: domain.Message{
 				En: "Error on update catalog",
@@ -89,7 +89,7 @@ func (server Server) UpdateGenericCatalog(request *domain.GenericCatalog, table 
 		}
 	}
 
-	return domain.APIResponse[domain.GenericCatalog, any]{
+	return domain.APIResponse[domain.GenericCatalog]{
 		Success: true,
 		Message: domain.Message{
 			En: "Catalog updated",
@@ -99,11 +99,11 @@ func (server Server) UpdateGenericCatalog(request *domain.GenericCatalog, table 
 	}
 }
 
-func (server Server) DeleteGenericCatalog(id uint, table interface{}) domain.APIResponse[domain.GenericCatalog, any] {
+func (server Server) DeleteGenericCatalog(id uint, table interface{}) domain.APIResponse[domain.GenericCatalog] {
 	repo := repository.GetDBConnection(server.Host)
 	err := repo.DeleteRecord(id, table)
 	if err != nil {
-		return domain.APIResponse[domain.GenericCatalog, any]{
+		return domain.APIResponse[domain.GenericCatalog]{
 			Success: false,
 			Message: domain.Message{
 				En: "Error on delete catalog",
@@ -113,7 +113,7 @@ func (server Server) DeleteGenericCatalog(id uint, table interface{}) domain.API
 		}
 	}
 
-	return domain.APIResponse[domain.GenericCatalog, any]{
+	return domain.APIResponse[domain.GenericCatalog]{
 		Success: true,
 		Message: domain.Message{
 			En: "Catalog deleted",
