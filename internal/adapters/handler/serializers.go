@@ -42,6 +42,20 @@ func ExtractAndParseUintParam(c *gin.Context, paramName string) (uint, error) {
 	return uint(id), err
 }
 
+func ExtractQueryParam(c *gin.Context, paramName string) string {
+	return c.Query(paramName)
+}
+
+func ExtractAndParseUintQueryParam(c *gin.Context, paramName string) (uint, error) {
+	stringParam := ExtractQueryParam(c, paramName)
+	id, err := strconv.ParseUint(stringParam, 10, 64)
+	if err != nil {
+		InvalidParamError(c, paramName, err)
+	}
+
+	return uint(id), err
+}
+
 func InvalidParamError(c *gin.Context, paramName string, err error) {
 	c.IndentedJSON(http.StatusBadRequest, ServerError(err, domain.Message{
 		En: "Invalid parameter " + paramName,

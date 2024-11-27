@@ -8,8 +8,8 @@ func SchemaFieldsError[T interface{}](schema map[string][]string) domain.APIResp
 	return domain.APIResponse[T]{
 		Success: false,
 		Message: domain.Message{
-			En: "Validation error",
-			Es: "Error de validación",
+			En: "Check the red fields",
+			Es: "Verifique los campos en rojo",
 		},
 		SchemaError: schema,
 	}

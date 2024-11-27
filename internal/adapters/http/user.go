@@ -17,6 +17,13 @@ func UserRoutes(r *gin.Engine) {
 
 		users.GET("/me/profile", handler.GetUserProfile)
 		users.GET("/profiles", protect(), handler.GetUsersProfiles)
+		users.POST("/profile", protect(), handler.CreateProfile)
+		users.PUT("/profile", protect(), handler.UpdateProfile)
+		users.DELETE("/profile/:id", protect(), handler.DeleteProfile)
+		users.GET("/profile/:id", protect(), handler.GetProfileByID)
+
+		// permissions
+		users.GET("/permissions", protect(), handler.GetPermissions)
 
 		users.GET("/kitchens", protect(), handler.Kitchens)
 		users.POST("/kitchens", protect(), handler.CreateKitchen)

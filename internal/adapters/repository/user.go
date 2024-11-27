@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/RomanshkVolkov/test-api/internal/core/domain"
@@ -269,11 +270,35 @@ func (database *DSNSource) UpdatePassword(userID uint, password string) error {
 	return nil
 }
 
-func (database *DSNSource) GetProfileByID(profileID uint) (domain.UserProfiles, error) {
+func (database *DSNSource) GetProfileByID(id uint) (domain.ProfileWithDetails, error) {
 	profile := domain.UserProfiles{}
-	database.DB.Model(&domain.UserProfiles{}).Where("id = ?", profileID).First(&profile)
+	// left join many to many profile with permissions
+	database.DB.Model(&domain.UserProfiles{}).Where("id = ?", id).First(&profile)
 
-	return profile, nil
+	permissions := []domain.ProfilesHasPermissions{}
+
+	database.DB.Model(&domain.ProfilesHasPermissions{}).Preload("Permission").Where("profile_id = ?", id).Find(&permissions)
+
+	permisssionsMapped := []domain.PermissionsByProfile{}
+
+	for _, permission := range permissions {
+		permisssionsMapped = append(permisssionsMapped, domain.PermissionsByProfile{
+			Permission: domain.Permission{
+				ID:   permission.PermissionID,
+				Name: permission.Permission.Name,
+				Path: permission.Permission.Path,
+			},
+			Writing: permission.Writing,
+		})
+	}
+
+	return domain.ProfileWithDetails{
+		ID:          profile.ID,
+		Name:        profile.Name,
+		CreatedAt:   profile.CreatedAt.Format("2006-01-02 15:04:05"),
+		UpdatedAt:   profile.UpdatedAt.Format("2006-01-02 15:04:05"),
+		Permissions: permisssionsMapped,
+	}, nil
 }
 
 func (database *DSNSource) GetUsersProfiles() ([]domain.UserProfiles, error) {
@@ -284,6 +309,81 @@ func (database *DSNSource) GetUsersProfiles() ([]domain.UserProfiles, error) {
 		Find(&profiles)
 
 	return profiles, nil
+}
+
+func (database *DSNSource) CreateProfile(data domain.CreateProfile) (domain.UserProfiles, error) {
+	profile := domain.UserProfiles{
+		Name: CapitalizeAll(data.Name),
+		Slug: Slugify(data.Name),
+	}
+
+	tx := database.DB.Begin()
+	if err := tx.Create(&profile).Error; err != nil {
+		tx.Rollback()
+		return domain.UserProfiles{}, err
+	}
+
+	for _, permission := range data.Permissions {
+		permissionsSerialized := domain.ProfilesHasPermissions{
+			ProfileID:    profile.ID,
+			PermissionID: permission.ID,
+			Writing:      permission.Writing,
+		}
+
+		if err := tx.Create(&permissionsSerialized).Error; err != nil {
+			tx.Rollback()
+			return domain.UserProfiles{}, err
+		}
+	}
+
+	tx.Commit()
+
+	return profile, nil
+}
+
+func (database *DSNSource) UpdateProfile(data domain.EditableProfile) (domain.UserProfiles, error) {
+	tx := database.DB.Begin()
+	if err := tx.Model(&domain.UserProfiles{}).Where("id = ?", data.ID).Updates(domain.UserProfiles{
+		Name: data.Name,
+	}).Error; err != nil {
+		tx.Rollback()
+		return domain.UserProfiles{}, err
+	}
+
+	// delete all permissions
+	if err := database.DB.Where("profile_id = ?", data.ID).Delete(&domain.ProfilesHasPermissions{}).Error; err != nil {
+		tx.Rollback()
+		return domain.UserProfiles{}, err
+	}
+
+	for _, permission := range data.Permissions {
+		fmt.Println(permission)
+		permissionsSerialized := domain.ProfilesHasPermissions{
+			ProfileID:    data.ID,
+			PermissionID: permission.ID,
+			Writing:      permission.Writing,
+		}
+
+		if err := tx.Create(&permissionsSerialized).Error; err != nil {
+			tx.Rollback()
+			return domain.UserProfiles{}, err
+		}
+	}
+
+	tx.Commit()
+
+	profile := domain.UserProfiles{}
+
+	database.DB.Model(&domain.UserProfiles{}).Where("id = ?", data.ID).First(&profile)
+
+	return profile, nil
+}
+
+func (database *DSNSource) GetPermissions() ([]domain.Permission, error) {
+	permissions := []domain.Permission{}
+	database.DB.Model(&domain.Permission{}).Where("status = ?", true).Find(&permissions)
+
+	return permissions, nil
 }
 
 func (database *DSNSource) GetKitchens() ([]domain.Kitchen, error) {
@@ -321,6 +421,8 @@ func (database *DSNSource) CreateShift(shift domain.GenericCatalog) (domain.Shif
 
 	return createdItem, nil
 }
+
+// common functions
 
 func GenerateOTP(txt string) string {
 	base := TxtToRandomNumbers(txt + "otp" + CurrentTime())

@@ -3,13 +3,16 @@ package repository
 import (
 	"bytes"
 	"crypto/rand"
+	"database/sql"
 	"encoding/binary"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"strings"
 	"time"
 
+	"github.com/RomanshkVolkov/test-api/internal/core/domain"
 	"golang.org/x/crypto/blake2b"
 )
 
@@ -114,6 +117,88 @@ func RemoveAccents(str string) string {
 	return result.String()
 }
 
-func RemoveSpaces(s string) string {
+func ReplaceSpacesWithUnderscores(s string) string {
 	return strings.ReplaceAll(s, " ", "_")
+}
+
+func Slugify(s string) string {
+	s = strings.ToLower(s)
+	s = RemoveAccents(s)
+	s = ReplaceSpacesWithUnderscores(s)
+	return s
+}
+
+func Stringify(v any) (string, error) {
+	jsonBytes, err := json.Marshal(v)
+	if err != nil {
+		return "", err
+	}
+
+	return string(jsonBytes), nil
+}
+
+func SerializedRowsProcedure(rows *sql.Rows) ([]map[string]any, error) {
+	columns, err := rows.Columns()
+	if err != nil {
+		return nil, err
+	}
+
+	var result []map[string]interface{}
+	for rows.Next() {
+		values := make([]interface{}, len(columns))
+		valuePtrs := make([]interface{}, len(columns))
+		for i := range columns {
+			valuePtrs[i] = &values[i]
+		}
+
+		err = rows.Scan(valuePtrs...)
+		if err != nil {
+			return nil, err
+		}
+
+		rowMap := make(map[string]any)
+		for i, col := range columns {
+			val := values[i]
+
+			switch v := val.(type) {
+			case []byte:
+				rowMap[col] = string(v)
+			default:
+				rowMap[col] = v
+			}
+		}
+
+		result = append(result, rowMap)
+	}
+
+	return result, nil
+}
+
+func SerializedTableAndColumns(rows *sql.Rows) ([]map[string]any, []domain.TableViewDefinition, error) {
+	table, err := SerializedRowsProcedure(rows)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	columnsResult := []domain.TableViewDefinition{}
+	if rows.NextResultSet() {
+		for rows.Next() {
+			var uid, name string
+			var align domain.Align
+
+			err := rows.Scan(&uid, &name, &align)
+			if err != nil {
+				fmt.Println("error al escanear las filas de usuarios: %w", err)
+				return nil, nil, err
+			}
+
+			columnsResult = append(columnsResult, domain.TableViewDefinition{
+				UID:   uid,
+				Name:  name,
+				Align: domain.Align(align),
+			})
+		}
+	}
+
+	return table, columnsResult, nil
 }

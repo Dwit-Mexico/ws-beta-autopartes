@@ -68,3 +68,27 @@ type EditableUser struct {
 	ProfileID  uint   `json:"profileID" validate:"required"`
 	KitchenIDs []uint `json:"kitchenIDs"`
 }
+
+type PermissionsByProfile struct {
+	Permission
+	Writing bool `json:"writing"`
+}
+
+type ProfileWithDetails struct {
+	ID          uint                   `json:"id"`
+	Name        string                 `json:"name"`
+	CreatedAt   string                 `json:"createdAt"`
+	UpdatedAt   string                 `json:"updatedAt"`
+	Permissions []PermissionsByProfile `json:"permissions"`
+}
+
+type CreateProfile struct {
+	Name        string                 `json:"name" validate:"required,min=3,max=200"`
+	Permissions []PermissionsByProfile `json:"permissions"`
+}
+
+type EditableProfile struct {
+	ID          uint                   `json:"id"`
+	Name        string                 `json:"name" validate:"required,min=3,max=200"`
+	Permissions []PermissionsByProfile `json:"permissions"`
+}

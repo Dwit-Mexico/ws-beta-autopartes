@@ -166,6 +166,143 @@ func (server Server) GetUsersProfiles() domain.APIResponse[[]domain.UserProfiles
 	}
 }
 
+func (server Server) CreateProfile(request *domain.CreateProfile) domain.APIResponse[domain.UserProfiles] {
+	fields := schema.GenericForm[domain.CreateProfile]{Data: *request}
+	failValidatedFields := schema.FormValidator(fields)
+
+	if len(failValidatedFields) > 0 {
+		return SchemaFieldsError[domain.UserProfiles](failValidatedFields)
+	}
+
+	repo := repository.GetDBConnection(server.Host)
+	profile, err := repo.CreateProfile(fields.Data)
+	if err != nil {
+		return domain.APIResponse[domain.UserProfiles]{
+			Success: false,
+			Message: domain.Message{
+				En: "Error on create profile",
+				Es: "Error al crear perfil",
+			},
+			Error: err,
+		}
+	}
+
+	return domain.APIResponse[domain.UserProfiles]{
+		Success: true,
+		Message: domain.Message{
+			En: "Profile created",
+			Es: "Perfil creado",
+		},
+		Data: profile,
+	}
+}
+
+func (server Server) UpdateProfile(request *domain.EditableProfile) domain.APIResponse[domain.UserProfiles] {
+	fields := schema.GenericForm[domain.EditableProfile]{Data: *request}
+	failValidatedFields := schema.FormValidator(fields)
+
+	if len(failValidatedFields) > 0 {
+		return SchemaFieldsError[domain.UserProfiles](failValidatedFields)
+	}
+
+	repo := repository.GetDBConnection(server.Host)
+	profile, err := repo.UpdateProfile(fields.Data)
+	if err != nil {
+		return domain.APIResponse[domain.UserProfiles]{
+			Success: false,
+			Message: domain.Message{
+				En: "Error on update profile",
+				Es: "Error al actualizar perfil",
+			},
+			Error: err,
+		}
+	}
+
+	return domain.APIResponse[domain.UserProfiles]{
+		Success: true,
+		Message: domain.Message{
+			En: "Profile updated",
+			Es: "Perfil actualizado",
+		},
+		Data: profile,
+	}
+}
+
+func (server Server) DeleteProfile(id uint) domain.APIResponse[any] {
+	repo := repository.GetDBConnection(server.Host)
+	err := repo.DeleteRecord(id, domain.UserProfiles{})
+	if err != nil {
+		return domain.APIResponse[any]{
+			Success: false,
+			Message: domain.Message{
+				En: "Error on delete profile",
+				Es: "Error al eliminar perfil",
+			},
+			Error: err,
+		}
+	}
+
+	return domain.APIResponse[any]{
+		Success: true,
+		Message: domain.Message{
+			En: "Profile deleted",
+			Es: "Perfil eliminado",
+		},
+	}
+}
+
+func (server Server) GetProfileByID(id uint) domain.APIResponse[domain.ProfileWithDetails] {
+	repo := repository.GetDBConnection(server.Host)
+	profile, err := repo.GetProfileByID(id)
+	if err != nil {
+		return domain.APIResponse[domain.ProfileWithDetails]{
+			Success: false,
+			Message: domain.Message{
+				En: "Error on get profile",
+				Es: "Error al obtener perfil",
+			},
+			Error: err,
+		}
+	}
+
+	if profile.ID == 0 {
+		return repository.RecordNotFound[domain.ProfileWithDetails]()
+	}
+
+	return domain.APIResponse[domain.ProfileWithDetails]{
+		Success: true,
+		Message: domain.Message{
+			En: "Profile data",
+			Es: "Datos de perfil",
+		},
+		Data: profile,
+	}
+}
+
+func (server Server) GetPermissions() domain.APIResponse[[]domain.Permission] {
+	repo := repository.GetDBConnection(server.Host)
+	permissions, err := repo.GetPermissions()
+	if err != nil {
+		return domain.APIResponse[[]domain.Permission]{
+			Success: false,
+			Message: domain.Message{
+				En: "Error on get permissions",
+				Es: "Error al obtener permisos",
+			},
+			Error: err,
+		}
+	}
+
+	return domain.APIResponse[[]domain.Permission]{
+		Success: true,
+		Message: domain.Message{
+			En: "Permissions list",
+			Es: "Lista de permisos",
+		},
+		Data: permissions,
+	}
+}
+
 func (server Server) GetKitchens() domain.APIResponse[[]domain.Kitchen] {
 	repo := repository.GetDBConnection(server.Host)
 	kitchens, err := repo.GetKitchens()

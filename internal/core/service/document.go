@@ -121,6 +121,82 @@ func (server Server) DeleteFieldDocument(id uint) domain.APIResponse[any] {
 	}
 }
 
+func (server Server) GetDocumentRowRecord(id uint, documentID uint) domain.APIResponse[[]domain.DocumentRowRecord] {
+	repo := repository.GetDBConnection(server.Host)
+	records, err := repo.GetDocumentRowRecord(id, documentID)
+	if err != nil {
+		return domain.APIResponse[[]domain.DocumentRowRecord]{Error: err}
+	}
+
+	return domain.APIResponse[[]domain.DocumentRowRecord]{
+		Success: true,
+		Message: domain.Message{En: "Records retrieved", Es: "Registros recuperados"},
+		Data:    records,
+	}
+}
+
+func (server Server) GetReports() domain.APIResponse[[]domain.Report] {
+	repo := repository.GetDBConnection(server.Host)
+	reports, err := repo.GetReports()
+	if err != nil {
+		return domain.APIResponse[[]domain.Report]{Error: err}
+	}
+
+	return domain.APIResponse[[]domain.Report]{
+		Success: true,
+		Message: domain.Message{En: "Reports retrieved", Es: "Reportes recuperados"},
+		Data:    reports,
+	}
+}
+
+func (server Server) GetReportByID(id uint) domain.APIResponse[domain.ReportByID] {
+	repo := repository.GetDBConnection(server.Host)
+	report, err := repo.GetReportByID(id)
+	if err != nil {
+		return domain.APIResponse[domain.ReportByID]{Error: err}
+	}
+
+	return domain.APIResponse[domain.ReportByID]{
+		Success: true,
+		Message: domain.Message{En: "Report retrieved", Es: "Reporte recuperado"},
+		Data:    report,
+	}
+}
+
+func (server Server) UpdateDocumentRowRecord(request *domain.EditableDoumentRowRecord) domain.APIResponse[any] {
+	fields := schema.GenericForm[domain.EditableDoumentRowRecord]{Data: *request}
+	failValidatedFields := schema.FormValidator(fields)
+	if len(failValidatedFields) > 0 {
+		return domain.APIResponse[any]{SchemaError: failValidatedFields}
+	}
+
+	repo := repository.GetDBConnection(server.Host)
+	err := repo.UpdateDocumentRowRecord(fields.Data)
+	if err != nil {
+		return domain.APIResponse[any]{Error: err}
+	}
+
+	return domain.APIResponse[any]{
+		Success: true,
+		Message: domain.Message{En: "Record updated", Es: "Registro actualizado"},
+	}
+}
+
+func (server Server) DeleteDocumentRowRecord(id uint, documentID uint) domain.APIResponse[any] {
+	repo := repository.GetDBConnection(server.Host)
+	err := repo.DeleteDocumentRowRecord(id, documentID)
+	if err != nil {
+		return domain.APIResponse[any]{
+			Message: domain.Message{En: "Error on delete record", Es: "Error al eliminar registro"},
+			Error:   err}
+	}
+
+	return domain.APIResponse[any]{
+		Success: true,
+		Message: domain.Message{En: "Record deleted", Es: "Registro eliminado"},
+	}
+}
+
 func (server Server) GetTables() domain.APIResponse[[]domain.Document] {
 	repo := repository.GetDBConnection(server.Host)
 	tables, err := repo.GetTables()

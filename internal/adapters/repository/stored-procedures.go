@@ -41,7 +41,7 @@ BEGIN
     EXEC sp_executesql @sql;
 END
 `
-const sp_GetDocumentTableByID = `CREATE PROCEDURE [dbo].sp_GetDocumentTableByID(@id INT)
+const sp_GetDocumentTableByID = `CREATE PROCEDURE [dbo].sp_GetDocumentTableByID @id INT
 AS
 BEGIN
     DECLARE @table_name NVARCHAR(100)
@@ -172,6 +172,16 @@ BEGIN
     EXEC sp_executesql @sql
 END
 `
+const sp_DeleteDocumentRowRecord = `CREATE PROCEDURE [dbo].sp_DeleteDocumentRowRecord @id BIGINT, @document_id BIGINT
+AS
+BEGIN
+    DECLARE @table_name NVARCHAR(100) = (SELECT TOP 1 [table] FROM documents WHERE id = @document_id)
+
+    DECLARE @sql NVARCHAR(500) = CONCAT('DELETE FROM ', @table_name, ' WHERE id = ', @id)
+
+    EXEC sp_executesql @sql
+END
+`
 const sp_DropFielToDocument = `CREATE PROCEDURE [dbo].sp_DropFielToDocument @id BIGINT, @documentID BIGINT
 AS
 BEGIN
@@ -187,6 +197,76 @@ BEGIN
 
         EXEC sp_executesql @sql
     END
+END
+`
+const sp_GetDocumentRowRecordValues = `CREATE PROCEDURE [dbo].sp_GetDocumentRowRecordValues @id BIGINT, @table_name NVARCHAR(100)
+AS
+BEGIN
+    DECLARE @sql NVARCHAR(500) = CONCAT('SELECT * from ', @table_name, ' WHERE id = ', @id)
+
+    EXEC sp_executesql @sql
+END
+`
+const sp_UpdateDocumentRowRecord = `CREATE PROCEDURE [dbo].sp_UpdateDocumentRowRecord @id BIGINT, @document_id BIGINT, @fields NVARCHAR(MAX)
+AS
+BEGIN
+    DECLARE @table_name NVARCHAR(100) = (SELECT [table] FROM documents WHERE id = @document_id)
+
+    DECLARE @details TABLE
+                     (
+                         field     NVARCHAR(100),
+                         typeField NVARCHAR(100)
+                     )
+
+    INSERT INTO @details (field, typeField)
+    SELECT field, type_field
+    FROM detail_documents
+    WHERE document_id = @document_id
+
+    DECLARE @sql NVARCHAR(MAX) = 'UPDATE t SET '
+    SELECT @sql = @sql + CONCAT('t.', field, ' = fields.', field, ',') FROM @details
+
+    SET @sql = dbo.fn_DropEndChar(@sql) + CONCAT(' FROM ', @table_name, ' t INNER JOIN (SELECT ', @id, ' AS id, ')
+
+    SELECT @sql = @sql + CONCAT(field, ',') FROM @details
+
+    SET @sql = dbo.fn_DropEndChar(@sql) + ' FROM OPENJSON(@fields) WITH ('
+
+    SELECT @sql = @sql + CONCAT(field, ' ', typeField, ' ''', '$.', field, '''', ',') FROM @details
+
+    SET @sql = dbo.fn_DropEndChar(@sql) + ')) AS fields ON fields.id = t.id'
+
+    PRINT @sql
+    EXEC sp_executesql @sql, N'@fields NVARCHAR(MAX)', @fields = @fields;
+END
+`
+const sp_ExampleReport = `CREATE PROCEDURE [dbo].sp_example_report
+AS
+BEGIN
+    DECLARE @report TABLE
+                    (
+                        field1 NVARCHAR(100),
+                        field2 NVARCHAR(50),
+                        date   DATETIME,
+                        cost   DECIMAL(10, 2)
+                    )
+
+    DECLARE @columns table_columns;
+    -- valid alignment 'start', 'center', 'end'
+
+    INSERT INTO @report (field1, field2, date, cost) SELECT 'valor 1,1', 'valor 1,2', GETUTCDATE(), 10.40
+    INSERT INTO @report (field1, field2, date, cost) SELECT 'valor 2,1', 'valor 2,2', GETUTCDATE(), 72.2
+    INSERT INTO @report (field1, field2, date, cost) SELECT 'valor 3,1', 'valor 3,2', GETUTCDATE(), 9182.2
+    INSERT INTO @report (field1, field2, date, cost) SELECT 'valor 4,1', 'valor 4,2', GETUTCDATE(), 92.4
+
+    INSERT INTO @columns (uid, name) SELECT 'field1', 'Columna 1'
+    INSERT INTO @columns (uid, name) SELECT 'field2', 'Columna 2'
+    INSERT INTO @columns (uid, name) SELECT 'date', 'Fecha'
+    INSERT INTO @columns (uid, name, align) SELECT 'cost', 'Costo por unidad de medida', 'end'
+
+    SELECT * FROM @report
+    SELECT * FROM @columns
+
 END
 `
 
@@ -242,8 +322,22 @@ func ExistTable(db *gorm.DB, name string) bool {
 }
 
 func MigrateProcedures(db *gorm.DB) {
+
+	// FUNCITONS
+	exist := ExistFunc(db, "fn_DropEndChar")
+	if !exist {
+		db.Exec(FuncDropEndChar)
+	}
+
+	exist = ExistFunc(db, "fn_DropEndChars")
+	if !exist {
+		db.Exec(FuncDropEndChars)
+	}
+
 	// db.Exec("DROP PROCEDURE IF EXISTS sp_CreateTableToDocument")
-	exist := ExistSP(db, "sp_CreateTableToDocument")
+
+	// STORED PROCEDURES
+	exist = ExistSP(db, "sp_CreateTableToDocument")
 	if !exist {
 		db.Exec(sp_CreateTableToDocument)
 	}
@@ -258,16 +352,6 @@ func MigrateProcedures(db *gorm.DB) {
 		db.Exec(sp_AppendDocumentData)
 	}
 
-	exist = ExistFunc(db, "fn_DropEndChar")
-	if !exist {
-		db.Exec(FuncDropEndChar)
-	}
-
-	exist = ExistFunc(db, "fn_DropEndChars")
-	if !exist {
-		db.Exec(FuncDropEndChars)
-	}
-
 	exist = ExistSP(db, "sp_DropTableByDocument")
 	if !exist {
 		db.Exec(sp_DropTableByDocument)
@@ -278,9 +362,31 @@ func MigrateProcedures(db *gorm.DB) {
 		db.Exec(sp_AddFieldToDocument)
 	}
 
-	// db.Exec("DROP PROCEDURE IF EXISTS sp_DropFielToDocument")
+	exist = ExistSP(db, "sp_DeleteDocumentRowRecord")
+	if !exist {
+		db.Exec(sp_DeleteDocumentRowRecord)
+	}
+
 	exist = ExistSP(db, "sp_DropFielToDocument")
 	if !exist {
 		db.Exec(sp_DropFielToDocument)
+	}
+
+	exist = ExistSP(db, "sp_GetDocumentRowRecordValues")
+	if !exist {
+		db.Exec(sp_GetDocumentRowRecordValues)
+	}
+
+	exist = ExistSP(db, "sp_UpdateDocumentRowRecord")
+	if !exist {
+		db.Exec(sp_UpdateDocumentRowRecord)
+	}
+
+	// exist type
+	db.Exec("CREATE TYPE table_columns AS TABLE (uid NVARCHAR(100), name NVARCHAR(100), align NVARCHAR(50));")
+
+	exist = ExistSP(db, "sp_example_report")
+	if !exist {
+		db.Exec(sp_ExampleReport)
 	}
 }

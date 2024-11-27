@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/RomanshkVolkov/test-api/internal/core/domain"
@@ -87,6 +88,72 @@ func CreateDocument(c *gin.Context) {
 	createdDocument := server.CreateDocument(request)
 	// create document
 	c.IndentedJSON(http.StatusOK, createdDocument)
+}
+
+func GetDocumentRowRecord(c *gin.Context) {
+	server := service.GetServer(c)
+
+	fmt.Println("GetDocumentRowRecord")
+	documentID, err := ExtractAndParseUintParam(c, "document")
+	if err != nil {
+		return
+	}
+	id, err := ExtractAndParseUintParam(c, "id")
+	if err != nil {
+		return
+	}
+
+	records := server.GetDocumentRowRecord(id, documentID)
+
+	c.IndentedJSON(http.StatusOK, records)
+}
+
+func GetReports(c *gin.Context) {
+	server := service.GetServer(c)
+	reports := server.GetReports()
+
+	c.IndentedJSON(http.StatusOK, reports)
+}
+
+func GetReportByID(c *gin.Context) {
+	server := service.GetServer(c)
+	id, err := ExtractAndParseUintParam(c, "id")
+	if err != nil {
+		return
+	}
+
+	report := server.GetReportByID(id)
+
+	c.IndentedJSON(http.StatusOK, report)
+}
+
+func UpdateDocumentRowRecord(c *gin.Context) {
+	request, err := ValidateRequest[domain.EditableDoumentRowRecord](c)
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, ServerError(err, RequestError))
+		return
+	}
+	server := service.GetServer(c)
+
+	updatedRecords := server.UpdateDocumentRowRecord(request)
+	// update records
+	c.IndentedJSON(http.StatusOK, updatedRecords)
+}
+
+func DeleteDocumentRowRecord(c *gin.Context) {
+	server := service.GetServer(c)
+	documentID, err := ExtractAndParseUintParam(c, "document")
+	if err != nil {
+		return
+	}
+	id, err := ExtractAndParseUintParam(c, "id")
+	if err != nil {
+		return
+	}
+
+	response := server.DeleteDocumentRowRecord(id, documentID)
+
+	c.IndentedJSON(http.StatusOK, response)
 }
 
 func GetTables(c *gin.Context) {

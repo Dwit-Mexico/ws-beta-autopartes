@@ -8,15 +8,17 @@ import (
 
 // table permissions - permisos
 type Permission struct {
-	ID   uint   `gorm:"primaryKey" json:"id"`
-	Name string `gorm:"type:nvarchar(100);not null" json:"name" validate:"required,min=3,max=100"`
-	Path string `gorm:"type:nvarchar(300);not null" json:"path" validate:"required,min=3,max=300"`
+	ID       uint   `gorm:"primaryKey" json:"id"`
+	Name     string `gorm:"type:nvarchar(100);not null" json:"name" validate:"required,min=3,max=100"`
+	Path     string `gorm:"type:nvarchar(300);not null" json:"path" validate:"required,min=3,max=300"`
+	IsPublic bool   `gorm:"type:bit;not null;" json:"isPublic"`
+	Status   bool   `gorm:"type:bit;not null;" json:"status"`
 }
 
 // table user_profiles - perfiles
 type UserProfiles struct {
 	ID        uint           `gorm:"primaryKey" json:"id"`
-	Name      string         `gorm:"type:nvarchar(300);not null" json:"name" validate:"required,min=3,max=300"`
+	Name      string         `gorm:"type:nvarchar(200);not null" json:"name" validate:"required,min=3,max=200"`
 	Slug      string         `gorm:"type:nvarchar(200);not null;unique" json:"slug" validate:"required,min=3,max=200"`
 	CreatedAt time.Time      `json:"createdAt"`
 	UpdatedAt time.Time      `json:"updatedAt"`
@@ -90,15 +92,6 @@ type DetailDocument struct {
 	DocumentKey string   `gorm:"type:nvarchar(100);not null" json:"documentKey" validate:"required,min=3,max=100"`
 }
 
-type DocumentReports struct {
-	ID              uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt       time.Time      `json:"createdAt"`
-	UpdatedAt       time.Time      `json:"updatedAt"`
-	DeletedAt       gorm.DeletedAt `gorm:"index" json:"-"`
-	Name            string         `gorm:"type:nvarchar(300);not null" json:"name" validate:"required,min=3,max=300"`
-	StoredProcedure string         `gorm:"type:nvarchar(300);not null" json:"-" validate:"required,min=3,max=300"`
-}
-
 type Dev struct {
 	gorm.Model
 	Tag string `gorm:"type:nvarchar(200);not null" json:"tag" validate:"required,min=3,max=200"`
@@ -108,7 +101,7 @@ type Dev struct {
 /**
 * Stored procedure field is a source of data table for the report
  */
-type Reports struct {
+type Report struct {
 	ID              uint           `gorm:"primaryKey" json:"id"`
 	CreatedAt       time.Time      `json:"createdAt"`
 	UpdatedAt       time.Time      `json:"updatedAt"`
@@ -117,13 +110,24 @@ type Reports struct {
 	StoredProcedure string         `gorm:"type:nvarchar(200);not null" json:"storedProcedure" validate:"required,min=5,max=200"`
 }
 
-type ChartReports struct {
+type ChartReport struct {
 	ID              uint           `gorm:"primaryKey" json:"id"`
 	CreatedAt       time.Time      `json:"createdAt"`
 	UpdatedAt       time.Time      `json:"updatedAt"`
 	DeletedAt       gorm.DeletedAt `gorm:"index" json:"-"`
 	Name            string         `gorm:"type:nvarchar(100);not null" json:"name" validate:"required,min=3,max=100"`
 	StoredProcedure string         `gorm:"type:nvarchar(200);not null" json:"storedProcedure" validate:"required,min=5,max=200"`
+	XAxisKey        string         `gorm:"type:nvarchar(100);not null" json:"xAxisKey" validate:"required,min=3,max=100"`
 	ReportID        uint           `gorm:"not null" json:"reportId"`
-	Report          Reports        `gorm:"foreignKey:ReportID;references:ID" json:"report"`
+	Report          Report         `gorm:"foreignKey:ReportID;references:ID" json:"report"`
+	Lines           []ChartLine    `gorm:"-" json:"lines"`
+}
+
+type ChartLine struct {
+	ID      uint        `gorm:"primaryKey" json:"id"`
+	LineKey string      `gorm:"type:nvarchar(100);not null" json:"lineKey" validate:"required,min=3,max=100"`
+	Stroke  string      `gorm:"type:nvarchar(100);not null" json:"stroke" validate:"required,min=3,max=100"`
+	Name    string      `gorm:"type:nvarchar(100);not null" json:"name" validate:"required,min=3,max=100"`
+	ChartID uint        `gorm:"not null" json:"chartId"`
+	Chart   ChartReport `gorm:"foreignKey:ChartID;references:ID" json:"chart"`
 }

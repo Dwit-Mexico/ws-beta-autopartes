@@ -39,8 +39,8 @@ func RunSeeds(db *gorm.DB) {
 	// db.Exec("DROP TABLE IF EXISTS detail_documents")
 	// db.Exec("DROP TABLE IF EXISTS documents")
 
-	SeedPermissions(db)
 	SeedProfiles(db)
+	SeedPermissions(db)
 	SeedShifts(db)
 	SeedUsers(db)
 	SeedKitchens(db)
@@ -48,6 +48,8 @@ func RunSeeds(db *gorm.DB) {
 	SeedHostingCenters(db)
 	SeedDocumentsAndReports(db)
 	MigrateProcedures(db)
+
+	SeedExampleReports(db)
 
 	// this function is used to create the tables of the document definition
 	MigrateDocumentTables(db)
@@ -164,13 +166,7 @@ func SeedShifts(db *gorm.DB) {
 
 func SeedPermissions(db *gorm.DB) {
 	AutoMigrateTable(db, &domain.Permission{})
-
-	var currentRows int64
-	db.Model(&domain.Permission{}).Count(&currentRows)
-
-	if currentRows > 0 {
-		return
-	}
+	AutoMigrateTable(db, &domain.ProfilesHasPermissions{})
 
 }
 
@@ -193,8 +189,9 @@ func SeedHostingCenters(db *gorm.DB) {
 func SeedDocumentsAndReports(db *gorm.DB) {
 	AutoMigrateTable(db, &domain.Document{})
 	AutoMigrateTable(db, &domain.DetailDocument{})
-	AutoMigrateTable(db, &domain.Reports{})
-	AutoMigrateTable(db, &domain.ChartReports{})
+	AutoMigrateTable(db, &domain.Report{})
+	AutoMigrateTable(db, &domain.ChartReport{})
+	AutoMigrateTable(db, &domain.ChartLine{})
 
 	var currentRows int64
 	db.Model(&domain.Document{}).Count(&currentRows)
@@ -435,7 +432,7 @@ func SeedDocumentsAndReports(db *gorm.DB) {
 		db.Create(&document.Document)
 		for _, detail := range document.Details {
 			detail.DocumentID = document.Document.ID
-			detail.DocumentKey = RemoveSpaces(RemoveAccents(detail.DocumentKey))
+			detail.DocumentKey = ReplaceSpacesWithUnderscores(RemoveAccents(detail.DocumentKey))
 			db.Create(&detail)
 		}
 	}
@@ -468,4 +465,39 @@ func MigrateDocumentTables(db *gorm.DB) {
 		}
 
 	}
+}
+
+func SeedExampleReports(db *gorm.DB) {
+	currentRows := int64(0)
+	db.Model(&domain.Report{}).Count(&currentRows)
+
+	if currentRows > 0 {
+		return
+	}
+
+	report := domain.Report{
+		Name:            "Example Report",
+		StoredProcedure: "sp_example_report",
+	}
+
+	chart := domain.ChartReport{
+		Name:            "Example Chart",
+		StoredProcedure: "sp_example_chart",
+		XAxisKey:        "date",
+	}
+
+	db.Create(&report)
+
+	chart.ReportID = 1
+	db.Create(&chart)
+
+	chartLine := domain.ChartLine{
+		LineKey: "name_field_in_procedure",
+		Stroke:  "#8884d8",
+		Name:    "Example Line",
+	}
+
+	chartLine.ChartID = chart.ID
+
+	db.Create(&chartLine)
 }

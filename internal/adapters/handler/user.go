@@ -123,6 +123,67 @@ func GetUsersProfiles(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, users)
 }
 
+func CreateProfile(c *gin.Context) {
+	request, err := ValidateRequest[domain.CreateProfile](c)
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, ServerError(nil, RequestError))
+		return
+	}
+
+	server := service.GetServer(c)
+	profile := server.CreateProfile(request)
+
+	c.IndentedJSON(http.StatusOK, profile)
+}
+
+func UpdateProfile(c *gin.Context) {
+	request, err := ValidateRequest[domain.EditableProfile](c)
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, ServerError(nil, RequestError))
+		return
+	}
+
+	server := service.GetServer(c)
+	profile := server.UpdateProfile(request)
+
+	c.IndentedJSON(http.StatusOK, profile)
+}
+
+func DeleteProfile(c *gin.Context) {
+	id, err := ExtractAndParseUintParam(c, "id")
+	if err != nil {
+		InvalidParamError(c, "ID", err)
+		return
+	}
+
+	server := service.GetServer(c)
+	profile := server.DeleteProfile(uint(id))
+
+	c.IndentedJSON(http.StatusOK, profile)
+}
+
+func GetProfileByID(c *gin.Context) {
+	server := service.GetServer(c)
+	stringID := c.Param("id")
+	id, err := strconv.ParseUint(stringID, 10, 64)
+
+	if err != nil {
+		InvalidParamError(c, "ID", err)
+		return
+	}
+
+	user := server.GetProfileByID(uint(id))
+
+	c.IndentedJSON(http.StatusOK, user)
+}
+
+func GetPermissions(c *gin.Context) {
+	server := service.GetServer(c)
+	permissions := server.GetPermissions()
+
+	c.IndentedJSON(http.StatusOK, permissions)
+}
+
 // @Summary Just Kitchens List
 // @Description Get Kitchens list
 // @tags Users

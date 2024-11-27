@@ -48,10 +48,31 @@ type ReportData struct {
 	Name string `json:"name"`
 }
 
+type DocumentRowRecord struct {
+	ID          uint   `json:"id"`
+	Field       string `json:"field"`
+	DocumentKey string `json:"documentKey"`
+	TypeField   string `json:"typeField"`
+	Value       any    `json:"value"`
+}
+
+type EditableDoumentRowRecord struct {
+	ID         uint `json:"id"`
+	DocumentID uint `json:"documentID"`
+	Records    any  `json:"records"`
+}
+
 type TableByID struct {
 	Document ReportData               `json:"document"`
 	Table    []map[string]interface{} `json:"table"`
 	Columns  []TableViewDefinition    `json:"columns"`
+}
+
+type ReportByID struct {
+	Report  ReportData               `json:"report"`
+	Table   []map[string]interface{} `json:"table"`
+	Columns []TableViewDefinition    `json:"columns"`
+	Charts  []ChartReport            `json:"charts"`
 }
 
 type UploadDocument struct {
