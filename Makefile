@@ -2,10 +2,6 @@ build-dev:
 	sudo rm -rf ./infra/containers/development/db/data/*
 	docker compose up -d --build
 run:
-	docker compose start sql-server
-	sleep 20
-	docker compose start api
-	docker compose logs -f api
 logs-api:
 	docker compose logs -f api
 restart-api:

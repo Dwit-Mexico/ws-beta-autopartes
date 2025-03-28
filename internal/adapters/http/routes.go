@@ -26,9 +26,6 @@ func InitRoutes(r *gin.Engine) {
 	AuthRoutes(r)
 	UserRoutes(r)
 	MailRoutes(r)
-	CatalogRoutes(r)
-	HostingCenterRoutes(r)
-	DocumentRoutes(r)
 	InternalRoutes(r)
 
 	// root route

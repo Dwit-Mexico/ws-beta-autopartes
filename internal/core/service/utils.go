@@ -4,7 +4,7 @@ import (
 	"github.com/RomanshkVolkov/test-api/internal/core/domain"
 )
 
-func SchemaFieldsError[T interface{}](schema map[string][]string) domain.APIResponse[T] {
+func SchemaFieldsError[T any](schema map[string][]string) domain.APIResponse[T] {
 	return domain.APIResponse[T]{
 		Success: false,
 		Message: domain.Message{

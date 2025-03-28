@@ -3,21 +3,6 @@ networks:
     driver: bridge
 
 services:
-  sql-server:
-    container_name: dev-sql-server
-    user: root
-    build:
-      context: ./infra/containers/development/db
-      dockerfile: Dockerfile
-    environment:
-      SA_PASSWORD: ${DEV_DOCKER_DATABASE_SA_PASSWORD}
-      ACCEPT_EULA: Y
-    networks:
-      - test-network
-    ports:
-      - "1433:1433"
-    volumes:
-      - ./infra/containers/development/db/data:/var/opt/mssql/data
   api:
     container_name: dev-golang
     user: root

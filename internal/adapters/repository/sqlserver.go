@@ -50,10 +50,10 @@ func GetDBConnection(subdomain string) DSNSource {
 
 type StoredProcedureParams struct {
 	Procedure string
-	Params    []interface{}
+	Params    []any
 }
 
-func ExecuteProcedureSQLServer(db *gorm.DB, procedure string, args ...interface{}) (*sql.Rows, error) {
+func ExecuteProcedureSQLServer(db *gorm.DB, procedure string, args ...any) (*sql.Rows, error) {
 	query := fmt.Sprintf("EXEC %s", procedure)
 	for range args {
 		query += " ?,"
