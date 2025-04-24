@@ -16,10 +16,10 @@ import (
 )
 
 var (
-	clients      = make(map[*domain.WSClient]bool) // Clientes WebSocket conectados.
-	clientsLock  sync.Mutex                        // Mutex para proteger el acceso a clients.
-	lastData     = make(map[int]time.Time)         // Mapa para almacenar la última fecha de actualización por SucursalID.
-	lastDataLock sync.Mutex                        // Mutex para proteger el acceso a lastData.
+	clients      *map[*domain.WSClient]bool // Clientes WebSocket conectados.
+	clientsLock  sync.Mutex                 // Mutex para proteger el acceso a clients.
+	lastData     = make(map[int]time.Time)  // Mapa para almacenar la última fecha de actualización por SucursalID.
+	lastDataLock sync.Mutex                 // Mutex para proteger el acceso a lastData.
 )
 
 var upgrader = websocket.Upgrader{
@@ -45,11 +45,11 @@ func HandlerWebSocket(c *gin.Context) {
 	}
 
 	clientsLock.Lock()
-	clients[client] = true
+	(*clients)[client] = true
 	clientsLock.Unlock()
 	defer func() {
 		clientsLock.Lock()
-		delete(clients, client)
+		delete((*clients), client)
 		clientsLock.Unlock()
 		close(client.Send)
 	}()
@@ -77,7 +77,7 @@ func PollWarehouses() {
 
 	for range ticker.C {
 		fmt.Println(clients)
-		if len(clients) == 0 {
+		if len((*clients)) == 0 {
 			return
 		}
 		data, err := repository.GetWebSocketWarehouses()
@@ -107,12 +107,12 @@ func PollWarehouses() {
 // notifyClients envía una notificación a todos los clientes conectados.
 func notifyClients() {
 	message := []byte("update") // Mensaje simple para notificar cambios.
-	for client := range clients {
+	for client := range *clients {
 		select {
 		case client.Send <- message:
 		default:
 			close(client.Send)
-			delete(clients, client)
+			delete(*clients, client)
 		}
 	}
 }
@@ -123,7 +123,7 @@ func handleMessages(client *domain.WSClient) {
 		_, _, err := client.Conn.ReadMessage()
 		if err != nil {
 			log.Printf("Error al leer mensaje del cliente: %v", err)
-			delete(clients, client)
+			delete((*clients), client)
 			break
 		}
 	}
