@@ -1,6 +1,6 @@
 package repository
 
-import "github.com/RomanshkVolkov/test-api/internal/core/domain"
+import "github.com/RomanshkVolkov/ws-beta-autopartes/internal/core/domain"
 
 func GetWebSocketWarehouses() ([]domain.WebSocketWarehouses, error) {
 	database := domain.DBBetaAutopartes

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/RomanshkVolkov/test-api/internal/adapters/repository"
+	"github.com/RomanshkVolkov/ws-beta-autopartes/internal/adapters/repository"
 	"gopkg.in/gomail.v2"
 )
 

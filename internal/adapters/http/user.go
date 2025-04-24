@@ -1,8 +1,8 @@
 package http
 
 import (
-	"github.com/RomanshkVolkov/test-api/internal/adapters/handler"
-	"github.com/RomanshkVolkov/test-api/internal/adapters/middleware"
+	"github.com/RomanshkVolkov/ws-beta-autopartes/internal/adapters/handler"
+	"github.com/RomanshkVolkov/ws-beta-autopartes/internal/adapters/middleware"
 	"github.com/gin-gonic/gin"
 )
 

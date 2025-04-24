@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/RomanshkVolkov/test-api/internal/core/domain"
+	"github.com/RomanshkVolkov/ws-beta-autopartes/internal/core/domain"
 	"github.com/gin-gonic/gin"
 )
 

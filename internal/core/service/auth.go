@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"html/template"
 
-	"github.com/RomanshkVolkov/test-api/internal/adapters/repository"
-	"github.com/RomanshkVolkov/test-api/internal/core/domain"
-	schema "github.com/RomanshkVolkov/test-api/internal/core/domain/schemas"
+	"github.com/RomanshkVolkov/ws-beta-autopartes/internal/adapters/repository"
+	"github.com/RomanshkVolkov/ws-beta-autopartes/internal/core/domain"
+	schema "github.com/RomanshkVolkov/ws-beta-autopartes/internal/core/domain/schemas"
 )
 
 func (server Server) SignIn(username string, password string) (domain.APIResponse[domain.SignInResponse], error) {

@@ -1,7 +1,7 @@
 package http
 
 import (
-	"github.com/RomanshkVolkov/test-api/internal/adapters/handler"
+	"github.com/RomanshkVolkov/ws-beta-autopartes/internal/adapters/handler"
 	"github.com/gin-gonic/gin"
 )
 

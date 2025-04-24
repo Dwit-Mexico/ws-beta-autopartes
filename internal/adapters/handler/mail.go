@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/RomanshkVolkov/test-api/internal/core/service"
+	"github.com/RomanshkVolkov/ws-beta-autopartes/internal/core/service"
 	"github.com/gin-gonic/gin"
 )
 

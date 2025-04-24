@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/RomanshkVolkov/test-api/internal/core/domain"
+	"github.com/RomanshkVolkov/ws-beta-autopartes/internal/core/domain"
 	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"

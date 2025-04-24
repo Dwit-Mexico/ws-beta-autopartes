@@ -3,7 +3,7 @@ package repository
 import (
 	"time"
 
-	"github.com/RomanshkVolkov/test-api/internal/core/domain"
+	"github.com/RomanshkVolkov/ws-beta-autopartes/internal/core/domain"
 )
 
 func (database *DSNSource) GetAllUsers() ([]domain.UserTableCRUD, error) {

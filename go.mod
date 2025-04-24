@@ -1,4 +1,4 @@
-module github.com/RomanshkVolkov/test-api
+module github.com/RomanshkVolkov/ws-beta-autopartes
 
 go 1.22.1
 

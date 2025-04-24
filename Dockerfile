@@ -21,7 +21,7 @@ ENV GO111MODULE=on \
 ARG DEPLOY_DB_DSN_BETA_AUTOPARTES
 ENV DB_DSN_BETA_AUTOPARTES="$DEPLOY_DB_DSN_BETA_AUTOPARTES"
 
-RUN go build -o /<binary-name> ./cmd/
+RUN go build -o /ws-beta-autopartes ./cmd/
 
 ENV DEPLOY_DB_DSN_BETA_AUTOPARTES="hidden"
 
@@ -30,9 +30,9 @@ FROM alpine:latest
 
 WORKDIR /srv
 
-COPY --from=builder /<binary-name> .
+COPY --from=builder /ws-beta-autopartes .
 COPY ./static ./static
 
 EXPOSE 8080
 
-CMD ["./<binary-name>"]
+CMD ["./ws-beta-autopartes"]

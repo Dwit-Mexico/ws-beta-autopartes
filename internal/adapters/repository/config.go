@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/RomanshkVolkov/test-api/internal/core/domain"
+	"github.com/RomanshkVolkov/ws-beta-autopartes/internal/core/domain"
 	"gorm.io/gorm"
 )
 

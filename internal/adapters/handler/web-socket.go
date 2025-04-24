@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/RomanshkVolkov/test-api/internal/adapters/repository"
-	"github.com/RomanshkVolkov/test-api/internal/core/domain"
-	"github.com/RomanshkVolkov/test-api/internal/core/lg"
+	"github.com/RomanshkVolkov/ws-beta-autopartes/internal/adapters/repository"
+	"github.com/RomanshkVolkov/ws-beta-autopartes/internal/core/domain"
+	"github.com/RomanshkVolkov/ws-beta-autopartes/internal/core/lg"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )
