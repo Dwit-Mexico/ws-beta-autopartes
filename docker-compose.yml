@@ -4,17 +4,15 @@ networks:
 
 services:
   api:
-    container_name: dev-golang
+    container_name: dev-golang-template
     user: root
     build:
       context: ./infra/containers/development
       dockerfile: Dockerfile
-    depends_on:
-      - sql-server
     environment:
-      DB_DSN_DOMAIN_1: ${DB_DSN_DOMAIN_1}
-      DB_DSN_DOMAIN_2: ${DB_DSN_DOMAIN_2}
-      DB_DSN_DOMAIN_3: ${DB_DSN_DOMAIN_3}
+      DB_DSN_BETA_AUTOPARTES: ${DB_DSN_BETA_AUTOPARTES}
+      # DB_DSN_DOMAIN_2: ${DB_DSN_DOMAIN_2}
+      # DB_DSN_DOMAIN_3: ${DB_DSN_DOMAIN_3}
       JWT_SECRET: ${JWT_SECRET}
       MAILER_EMAIL: ${MAILER_EMAIL}
       MAILER_PASSWORD: ${MAILER_PASSWORD}

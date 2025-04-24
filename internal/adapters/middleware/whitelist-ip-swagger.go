@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/RomanshkVolkov/test-api/internal/adapters/repository"
+	"github.com/RomanshkVolkov/test-api/internal/core/domain"
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,7 +16,7 @@ func IPWhiteListSwagger() gin.HandlerFunc {
 		fmt.Println("host", host)
 		fmt.Println("ip", currentIP)
 
-		repo := repository.GetDBConnection(host)
+		repo := repository.GetDBConnection(domain.DBBetaAutopartes)
 		exist, err := repo.SwaggerValidateIPAddress(currentIP)
 
 		if err != nil {

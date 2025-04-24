@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/RomanshkVolkov/test-api/internal/core/domain"
 	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -34,10 +35,9 @@ func DBConnection() {
 
 }
 
-func GetDBConnection(subdomain string) DSNSource {
-	fmt.Println("Subdomain: ", subdomain)
+func GetDBConnection(database domain.Database) DSNSource {
 	// pending replace to read subdomain and match with DBSQLServer list
-	authorizedHost := MAPPED_AUTHORIZED_DOMAINS[subdomain]
+	authorizedHost := MAPPED_DATABASES_CONNECTIONS[database]
 	for _, db := range DBSQLServer {
 		if db.Name == authorizedHost {
 			fmt.Println("DB: ", db.Name)

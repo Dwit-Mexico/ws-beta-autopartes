@@ -14,8 +14,7 @@ type SignInRequest struct {
 
 type SignInResponse struct {
 	UserData
-	Profile UserProfiles `json:"profile"`
-	Token   string       `json:"token"`
+	Token string `json:"token"`
 }
 
 type PasswordResetRequest struct {
@@ -70,7 +69,6 @@ type EditableUser struct {
 }
 
 type PermissionsByProfile struct {
-	Permission
 	Writing bool `json:"writing"`
 }
 

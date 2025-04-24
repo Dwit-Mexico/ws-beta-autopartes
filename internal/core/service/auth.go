@@ -69,8 +69,7 @@ func (server Server) SignIn(username string, password string) (domain.APIRespons
 				Name:     user.Name,
 				Email:    user.Email,
 			},
-			Profile: user.Profile,
-			Token:   token,
+			Token: token,
 		},
 	}, nil
 }

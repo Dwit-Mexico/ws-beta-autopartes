@@ -26,7 +26,7 @@ func InitRoutes(r *gin.Engine) {
 	AuthRoutes(r)
 	UserRoutes(r)
 	MailRoutes(r)
-	InternalRoutes(r)
+	InitWebSocketRoutes(r)
 
 	// root route
 	r.GET("/", func(c *gin.Context) {
