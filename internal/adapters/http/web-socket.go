@@ -10,5 +10,4 @@ func InitWebSocketRoutes(r *gin.Engine) {
 
 	r.GET("/ws", handler.HandlerWebSocket)
 
-	go handler.PollWarehouses()
 }

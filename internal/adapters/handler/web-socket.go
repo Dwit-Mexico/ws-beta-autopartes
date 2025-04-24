@@ -8,6 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"slices"
+
 	"github.com/RomanshkVolkov/ws-beta-autopartes/internal/adapters/repository"
 	"github.com/RomanshkVolkov/ws-beta-autopartes/internal/core/domain"
 	"github.com/RomanshkVolkov/ws-beta-autopartes/internal/core/lg"
@@ -16,9 +18,9 @@ import (
 )
 
 var (
-	clients      *map[*domain.WSClient]bool // Clientes WebSocket conectados.
-	lastData     = make(map[int]time.Time)  // Mapa para almacenar la última fecha de actualización por SucursalID.
-	lastDataLock sync.Mutex                 // Mutex para proteger el acceso a lastData.
+	clients      []domain.WSClient         // Clientes WebSocket conectados.
+	lastData     = make(map[int]time.Time) // Mapa para almacenar la última fecha de actualización por SucursalID.
+	lastDataLock sync.Mutex                // Mutex para proteger el acceso a lastData.
 )
 
 var upgrader = websocket.Upgrader{
@@ -28,9 +30,7 @@ var upgrader = websocket.Upgrader{
 }
 
 func init() {
-	// Inicializa el mapa usando un puntero
-	m := make(map[*domain.WSClient]bool)
-	clients = &m
+	go PollWarehouses()
 }
 
 // HandlerWebSocket maneja las conexiones WebSocket.
@@ -44,14 +44,17 @@ func HandlerWebSocket(c *gin.Context) {
 	defer conn.Close()
 
 	// Crea un nuevo cliente.
-	client := &domain.WSClient{
+	client := domain.WSClient{
 		Conn: conn,
 		Send: make(chan []byte),
 	}
 
-	(*clients)[client] = true
+	// add client
+	clients = append(clients, client)
+
 	defer func() {
-		delete((*clients), client)
+		// remove client
+		clients = removeClient(clients, client)
 		close(client.Send)
 	}()
 
@@ -71,15 +74,23 @@ func HandlerWebSocket(c *gin.Context) {
 	}
 }
 
+func removeClient(clients []domain.WSClient, client domain.WSClient) []domain.WSClient {
+	for i, c := range clients {
+		if c == client {
+			return slices.Delete(clients, i, i+1)
+		}
+	}
+	return clients
+}
+
 // PollWarehouses realiza polling a la base de datos y envía notificaciones a los clientes.
 func PollWarehouses() {
 	ticker := time.NewTicker(5 * time.Second) // Intervalo de polling.
 	defer ticker.Stop()
 
 	for range ticker.C {
-		fmt.Println(clients)
-		if len((*clients)) == 0 {
-			return
+		if len(clients) == 0 {
+			continue
 		}
 		data, err := repository.GetWebSocketWarehouses()
 		if err != nil {
@@ -108,23 +119,23 @@ func PollWarehouses() {
 // notifyClients envía una notificación a todos los clientes conectados.
 func notifyClients() {
 	message := []byte("update") // Mensaje simple para notificar cambios.
-	for client := range *clients {
+	for _, client := range clients {
 		select {
 		case client.Send <- message:
 		default:
 			close(client.Send)
-			delete(*clients, client)
+			clients = removeClient(clients, client)
 		}
 	}
 }
 
 // handleMessages maneja mensajes recibidos de los clientes (opcional).
-func handleMessages(client *domain.WSClient) {
+func handleMessages(client domain.WSClient) {
 	for {
 		_, _, err := client.Conn.ReadMessage()
 		if err != nil {
 			log.Printf("Error al leer mensaje del cliente: %v", err)
-			delete((*clients), client)
+			clients = removeClient(clients, client)
 			break
 		}
 	}
