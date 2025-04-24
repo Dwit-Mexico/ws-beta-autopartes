@@ -17,6 +17,7 @@ import (
 
 var (
 	clients      = make(map[*domain.WSClient]bool) // Clientes WebSocket conectados.
+	clientsLock  sync.Mutex                        // Mutex para proteger el acceso a clients.
 	lastData     = make(map[int]time.Time)         // Mapa para almacenar la última fecha de actualización por SucursalID.
 	lastDataLock sync.Mutex                        // Mutex para proteger el acceso a lastData.
 )
@@ -38,10 +39,18 @@ func HandlerWebSocket(c *gin.Context) {
 	defer conn.Close()
 
 	// Crea un nuevo cliente.
-	client := &domain.WSClient{Conn: conn, Send: make(chan []byte)}
+	client := &domain.WSClient{
+		Conn: conn,
+		Send: make(chan []byte),
+	}
+
+	clientsLock.Lock()
 	clients[client] = true
+	clientsLock.Unlock()
 	defer func() {
+		clientsLock.Lock()
 		delete(clients, client)
+		clientsLock.Unlock()
 		close(client.Send)
 	}()
 

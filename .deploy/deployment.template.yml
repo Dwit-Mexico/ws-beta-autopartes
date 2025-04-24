@@ -2,7 +2,6 @@ services:
   STACK_PLACEHOLDER-app:
     image: IMAGE_PLACEHOLDER
     environment:
-      - PORT=3000
       - DB_DSN_BETA_AUTOPARTES=DEPLOY_DB_DSN_BETA_AUTOPARTES_PLACEHOLDER
       # add more environment variables here same debug.sh and deployment.template.yml
     networks:
