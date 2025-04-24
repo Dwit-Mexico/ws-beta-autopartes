@@ -69,7 +69,7 @@ jobs:
           IMAGE="${{ env.REGISTRY }}/$(echo "${{ env.IMAGE }}" | tr '[:upper:]' '[:lower:]'):${SHORT_SHA}" \
           CADDY_HOST="${{ vars.HOST_DNS }}" \
           CADDY_TLS="${{ vars.TLS}}" \
-          DEPLOY_DB_DSN_BETA_AUTOPARTES="${{ secrets.DEPLOY_DB_DSN_BETA_AUTOPARTES }"
+          DEPLOY_DB_DSN_BETA_AUTOPARTES="${{ secrets.DEPLOY_DB_DSN_BETA_AUTOPARTES }" \
           > /tmp/${{ github.event.repository.name }}.${{ env.ENVIRONMENT }}.deployment.yml
 
       - name: Set up SSH key
