@@ -1,0 +1,20 @@
+services:
+  STACK_PLACEHOLDER-app:
+    image: IMAGE_PLACEHOLDER
+    environment:
+      - PORT=3000
+      - DB_DSN_BETA_AUTOPARTES=DEPLOY_DB_DSN_BETA_AUTOPARTES_PLACEHOLDER
+      # add more environment variables here same debug.sh and deployment.template.yml
+    networks:
+      - caddy
+    deploy:
+      replicas: 1
+      labels:
+        caddy: CADDY_HOST_PLACEHOLDER
+        caddy.tls: CADDY_TLS_PLACEHOLDER
+        caddy.tls.on_demand:
+        caddy.reverse_proxy: "{{upstreams 3000}}" # important check same value on Dockerfile and PORT enviroment var
+
+networks:
+  caddy:
+    external: true
