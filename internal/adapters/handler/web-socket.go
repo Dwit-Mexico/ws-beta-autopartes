@@ -28,6 +28,12 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
+func init() {
+	// Inicializa el mapa usando un puntero
+	m := make(map[*domain.WSClient]bool)
+	clients = &m
+}
+
 // HandlerWebSocket maneja las conexiones WebSocket.
 func HandlerWebSocket(c *gin.Context) {
 	// Actualiza la conexión HTTP a WebSocket.
