@@ -13,7 +13,7 @@ services:
         caddy: CADDY_HOST_PLACEHOLDER
         caddy.tls: CADDY_TLS_PLACEHOLDER
         caddy.tls.on_demand:
-        caddy.reverse_proxy: "{{upstreams 3000}}" # important check same value on Dockerfile and PORT enviroment var
+        caddy.reverse_proxy: "{{upstreams 8080}}" # important check same value on Dockerfile and PORT enviroment var
 
 networks:
   caddy:
